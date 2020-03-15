@@ -1,0 +1,13 @@
+{
+"balance": "COM5",
+"imprimante": "WS4",
+"marge": 100,
+"articles": "C:\\Users\\Domi\\balance\\articles.csv",
+"timeoutClavierNumerique": 20000,
+"timeoutCoordo": 10000,
+"poolingArticles": 10000,
+"message1": "Poser les articles sur la balance",
+"message2": "Si les articles sont dans votre \"contenant\" personnel, appuyer en haut à droite sur \"Contenant\".\nSi votre contenant n'a pas été pesé, voir l'accueil.",
+"message3": "Appuyer sur les deux lettres du code du produit, ou si vous ne les avez pas notées, sur les deux premières lettres de son nom.",
+"message4": "Pas d'article ayant ce code où commençant par ces lettres."
+}
