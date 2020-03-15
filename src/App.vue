@@ -547,7 +547,7 @@ export default {
 
     clicArticle(article) {
       let c1 = article.codeCourt.charAt(0)
-      if (this.enserie && c1 < 'W') { 
+      if (this.enserie && c1 < 'W') {
         /*
         Pour étiquettage en série on ne garde en sélection qu'un seul article
         SAUF si c'est un article de code explicite qui commence W X Y Z
