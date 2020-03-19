@@ -3,25 +3,33 @@
     <q-header class="text-black bg-grey-2">
       <div class="column">
         <div class="col-auto row q-py-md">
+          <!-- Bouton d'ouverture du menu réservé au coordonnateur -->
           <q-btn :size="standardBtnSize" flat round @click="coordo = true" icon="menu" aria-label="Menu coordo"/>
+          <!-- Zone "poids brut" : soit celui donné par la balance, soit celui saisi par le coordonateur -->
           <div :class="'col row items-center justify-start av-gbtn' + (ecouteBalance ? '2' : ' shadow-5')" v-ripple @click="saisieP()">
             <div :class="'col av-label' + (ecouteBalance ? '2' : '')">Poids brut</div>
             <div class="col-auto column items-center justify-between">
               <div :class="'av-poids' + (ecouteBalance ? '2' : '')">{{format(poidsBalance)}}</div>
+              <!-- Filler invisible permettant juste que la zone ne change pas d'aspect quand le bouton "Effacer" est visisble -->
               <div v-if="ecouteBalance || poidsBalance == 0" class="av-box1 self-center"></div>
+              <!-- Le bouton "Effacer" le poids saisi est caché quand la balance est active (cas normal) et tant que le poids est 0-->
               <q-btn v-else class="av-box2" size="1rem" color="deep-orange" label="Effacer" @click.stop="poidsBalance = 0"/>
             </div>
           </div>
+          <!-- Zone "Poids du contenant"-->
           <div class="col row items-center justify-start av-gbtn shadow-5" v-ripple @click="saisieC()">
             <div class="col-auto column items-center justify-between">
               <div class="av-poids">{{format(poidsContenant)}}</div>
+              <!-- Filler invisible permettant juste que la zone ne change pas d'aspect quand le bouton "Effacer" est visisble -->
               <div v-if="poidsContenant == 0" class="av-box1 self-center"></div>
+              <!-- Le bouton "Effacer" le poids du contanant est caché tant que le poids est 0 -->
               <q-btn v-else class="av-box2" size="1rem" color="deep-orange" label="Effacer" @click.stop="poidsContenant = 0"/>
             </div>
             <div class="col av-label">Contenant</div>
           </div>
         </div>
 
+        <!-- Zone du clavier : deux rangées de lettres -->
         <div class="col-auto row justify-between items-start">
           <div class="col column">
             <div class="col-auto row items-center justify-around av-lettres">
@@ -35,9 +43,12 @@
               </div>
             </div>
           </div>
+          <!-- Zone d'affichage du code court (ou des 2 premières lettres du produit) -->
           <div class="col-auto column items-center justify-between av-codeCourt1">
             <div class="av-codeCourt"><span class="av-lettre2">{{codeCourt}}</span></div>
+            <!-- Filler invisible permettant juste que la zone ne change pas d'aspect quand le bouton "Effacer" est visisble -->
             <div v-if="codeCourt === ''" class="av-box1"></div>
+            <!-- Bouton d'effacement du code court (quand il a été saisi) -->
             <q-btn v-else class="av-box2" size="1rem" color="deep-orange" label="Effacer" @click.stop="effaceCode()"/>
           </div>
         </div>
@@ -45,30 +56,37 @@
       </div>
     </q-header>
 
+    <!-- Le panneau gauche est le Menu réservé au coordonnateur -->
     <q-drawer v-model="panneauGauche" overlay :width="400" bordered content-class="bg-grey-1">
       <div class="absolute" style="top:0;right:-2rem">
+        <!-- Bouton pour refermer le panneau : invisible quand le panneau n'est visible, sinon on en voit quand même un bout -->
         <q-btn v-if="panneauGauche" :size="standardBtnSize" dense round unelevated color="accent" icon="chevron_left" @click="panneauGauche = false"/>
       </div>
       <q-list>
         <q-item clickable v-ripple @click="panneauGauche = false" class="column">
           <div class="col-auto text-h6 bold">Version de l'application : {{ version }}</div>
+          <!-- Nombre d'articles du fichier -->
           <div v-if="this.articles.length == 0" class="col-auto">Pas d'article</div>
           <div v-else class="col-auto">{{this.articles.length}} articles</div>
+          <!-- La balance est en erreur : texte du diagnostic -->
           <div v-if="!ecouteBalance" class="col-auto text-negative">Balance déconnectée, saisie manuelle du poids</div>
           <div v-if="ecouteBalance && erreurBalance" class="col-auto text-negative">{{erreurBalance}}<br>
             <span class="text-deep-orange-8 text-bold">Tenter de reconnecter après avoir vérifier les branchements et que la balance est allumée</span>
           </div>
         </q-item>
         <q-separator />
+        <!-- Bouton d'activation du mode "Impression en série" -->
         <q-item v-if="!enserie" clickable v-ripple @click="enserie = true;panneauGauche = false">
           <q-item-section avatar><q-icon class="menuButton" :name="'reorder'"/></q-item-section>
           <q-item-section class="menuText">Impression en série</q-item-section>
         </q-item>
+        <!-- Bouton de désactivation du mode "Saisie en série" -->
         <q-item v-else clickable v-ripple @click="finSerie();panneauGauche = false">
           <q-item-section avatar><q-icon class="menuButton" :name="'pause'"/></q-item-section>
           <q-item-section class="menuText">Fin du mode impression en série</q-item-section>
         </q-item>
         <q-separator />
+        <!-- Passage à la saisie manuelle du poids (balance dite "déconnectée") ou retour à la normale (balance dite "connectée / écoutée")-->
         <q-item v-if="!ecouteBalance" clickable v-ripple @click="reconnecterBalance();panneauGauche = false">
           <q-item-section avatar><q-icon class="menuButton" :name="'check'"/></q-item-section>
           <q-item-section class="menuText">Reconnecter la balance</q-item-section>
@@ -78,6 +96,7 @@
           <q-item-section class="menuText">Deconnecter la balance</q-item-section>
         </q-item>
         <q-separator />
+        <!-- Bouton pour quitter l'application -->
         <q-item clickable class="negative" v-ripple @click="exitApp = true">
           <q-item-section avatar><q-icon class="menuButton" :name="'exit_to_app'"/></q-item-section>
           <q-item-section class="menuText">Quitter l'application</q-item-section>
@@ -85,17 +104,21 @@
       </q-list>
     </q-drawer>
 
+    <!-- Zone centrale : affichage des instructions ou des fiches des produits correspondant au code court -->
     <q-page-container class="av-container">
+      <!-- Les 4 messages correspondent à des états différents selon que le produit est ou non sur la balance,
+        que le poids du conteant a été saisi ou non et que le code court a été saisi ou non -->
       <div v-if="poidsBalance === 0" class="av-msg  shadow-5">{{ m1 }}</div>
       <div v-if="poidsBalance !== 0 && poidsContenant === 0 && codeCourt.length === 0" class="av-msg shadow-5">{{ m2 }}</div>
       <div v-if="poidsBalance !== 0 && codeCourt.length === 0" class="av-msg shadow-5">{{ m3 }}</div>
       <div v-if="codeCourt.length !== 0 && this.selArticles.length == 0" class="av-msg shadow-5">{{ m4 }}</div>
-
+      <!-- Fiches des articles correspondants au code court -->
       <div v-if="this.selArticles.length !== 0" class="row justify-around">
         <carte-article v-for="article in selArticles" :key="article.id" :article="article" @clic-article="clicArticle(article)"></carte-article>
       </div>
     </q-page-container>
 
+    <!-- Boîte de dialogue de sortie de l'application -->
     <q-dialog v-model="exitApp" persistent>
       <q-card>
         <q-card-section class="row items-center">
@@ -112,7 +135,8 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="alerte">
+    <!-- Boîte de dialogue générique avec acquittement "J'ai lu" -->
+     <q-dialog v-model="alerte">
       <q-card>
         <q-card-section>
           <div class="text-h6">Erreur</div>
@@ -126,6 +150,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- Boîte de dialogue d'information d'un poids de contenant excessif -->
     <q-dialog v-model="alerteC" persistent>
       <q-card>
         <q-card-section class="q-ml-sm dialogText">
@@ -137,6 +162,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- Boîte de dialogue d'information interdisant d'imprimer une étiquette quand rien n'est posé sur la balance -->
     <q-dialog v-model="sanspoids" persistent>
       <q-card>
         <q-card-section class="q-ml-sm dialogText">
@@ -148,6 +174,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- Boîte de dialogue demandant si la personne derrière l'écran est bien un coordonnateur -->
     <q-dialog v-model="coordo" persistent>
       <q-card>
         <q-card-section class="row items-center">
@@ -162,14 +189,17 @@
       </q-card>
     </q-dialog>
 
+    <!-- Pavé numérique pour la saisie du poids du contenant -->
     <q-dialog v-model="saisiecont" persistent>
       <pave-numerique :valeur="0" @saisie-ok="saisiecontok"></pave-numerique>
     </q-dialog>
 
+    <!-- Pavé numérique pour la saisie du poids brut -->
     <q-dialog v-model="saisiepoids" persistent>
       <pave-numerique :valeur="0" @saisie-ok="saisiepoidsok"></pave-numerique>
     </q-dialog>
 
+    <!-- Pavé numérique pour la saisie du nombre de pièces sur la balance -->
     <q-dialog v-model="saisiepieces" persistent>
       <pave-numerique :valeur="nbpieces" :unites="true" @saisie-ok="saisieunitesok"></pave-numerique>
     </q-dialog>
@@ -179,27 +209,40 @@
 
 <script>
 const fs = require('fs')
-const csv = require('csv-parser')
+const csv = require('csv-parser') // parser csv
 
 import { config } from './app/config'
 import { formatPoids, removeDiacritics, codeCourtDeId, poidsPiece } from './app/global'
 import { Balance } from './app/portbalance'
 import { etiquette } from './app/zpl'
 
-const lgn = 32
+const lgn = config.lgnomsuretiquette || 32 // Nombre de caractères max apparaissant sur une ligne d'étiquette
 
+/*
+Décore un article "data" : calcule des propriétés additionnelles
+*/
 function decore (data) {
     const n = parseInt(data.id, 10)
+    // Obtient le code court, depuis l'id ou depuis le nom
     data.codeCourt = codeCourtDeId(n, data.nom)
+    // Enlève pour l'affichage le code court quand il figure en tête du nom
     if (data.nom.startsWith('[' + data.codeCourt + ']')) data.nom = data.nom.substring(4)
+    // Obtient le poids moyen d'une pièce figurant éventuellement au bout du nom
     let [nom2, p] = poidsPiece(data.unite, data.nom)
     data.poidsPiece = p
     data.nom = nom2
+    // Détermine si le produit est bio depuis son nom
     data.bio = data.nom.toUpperCase().indexOf('BIO') !== -1
 
+    // prix du produit sous forme numérique
     data.prixN = parseFloat(data.prix)
     if (Number.isNaN(data.prixN)) { data.prixN = 0 }
 
+    /*
+    Calcule les une ou deux lignes de dénomition du produit apparaissant sur l'étiquette
+    Une ligne a un nombre maximal de caractères
+    Les mots ne sont pas coupés
+    */
     let nom = ['', '']
     let j = 0
     let nx = data.nom.trim().split(' ')
@@ -219,16 +262,20 @@ function decore (data) {
             }
         }
     }
-    data.nom1 = nom[0]
-    data.nom2 = nom[1]
+    data.nom1 = nom[0] // Première ligne du nom
+    data.nom2 = nom[1] // Seconde ligne du nom
 }
 
+// Retourne la date-heure de dernière modification du fichier articles.csv pour détecter son changement
 function mtimeArticles () {
     let stats = fs.statSync(config.articles)
     return stats ? stats.mtime.toString() : ''
 }
 
-// CSV : id nom code-barre prix unite image
+/*
+Lecture du fichier articles.csv et mise sous forme d'objet - CSV : id nom code-barre prix unite image
+Fonction différée : le retour effectif est sur le callback cb (en erreur ou normal)
+*/
 function lectureArticles(cb) {
     let mtime = mtimeArticles()
     if (!mtime) {
@@ -261,6 +308,11 @@ function lectureArticles(cb) {
 import CarteArticle from './components/CarteArticle.vue'
 import PaveNumerique from './components/PaveNumerique.vue'
 
+/*
+Pour toutes les saisie du client à l'écran il y a un timeout.
+Il peut simplement partir (oyu hésiter très longtemps) et dans ce cas la réponse "négative" est choisie
+et la boîte de dialogue, le menu ou le pavé numérique se ferme.
+*/
 // Time out du clavier numérique. Se ferme et renvoie 0 au delà de ce temps
 const toCN = config.timeoutClavierNumerique || 20000
 
@@ -275,54 +327,63 @@ export default {
 
   components: { CarteArticle, PaveNumerique },
 
+  /*
+  A l'initialisation :
+  - il faut rechager les articles
+  - il faut créer une balance
+  - il faut la connecter, c'est à dire la mettre à l'écoute permannente d'un poids
+  */
   mounted() {
     console.log('mounted: ' + config.balance)
-    this.detectionArticles(config.articles)
+    this.detectionArticles()
+    // La balance est créée avec la méthode de callback à invoquer à chaque fois que le poids change (this.poidsReçu)
     this.balance = new Balance(config.balance, this.poidsRecu)
     this.reconnecterBalance()
   },
 
   data () {
     return {
-      version: config.version,
+      version: config.version, // version de l'application (en production seulement)
       m1: config.message1 || 'Poser les articles sur la balance',
       m2: config.message2 || 'Si les articles sont dans votre "contenant" personnel, appuyer en haut à droite sur "Contenant".\nSi votre contenant n\'a pas été pesé, voir l\'accueil.',
       m3: config.message3 || 'Appuyer sur les deux lettres du code du produit, ou si vous ne les avez pas notées, sur les deux premières lettres de son nom.',
       m4: config.message4 || 'Pas d\'article ayant ce code où commençant par ces lettres.',
-      mtime: '',
-      largeBtnSize: '2rem',
-      standardBtnSize: '1.5rem',
-      coordo: false,
-      panneauGauche: false,
-      saisiecont: false,
-      saisiepoids: false,
-      saisiepieces: false,
-      alerte: false,
-      alerteC: false,
-      sanspoids: false,
-      exitApp: false,
-      articles: [],
-      selArticles: [],
-      texteAlerte: '',
-      erreurBalance: '',
-      ecouteBalance: false,
-      poidsBalance: 0,
-      poidsContenant: 0,
-      nbpieces: 0,
-      codeCourt: '',
+      mtime: '', // date-heure de dernière modification du fichiers articles.csv chargé
+      largeBtnSize: '2rem', // Taille d'un bouton large (le q-btn n'admet pas un CSS pour ça)
+      standardBtnSize: '1.5rem', // Taille d'un bouton standard
+      coordo: false, // Le client s'est déclaré coordonnateur
+      panneauGauche: false, // Model du panneau gauche "Menu du coordonnateur"
+      saisiecont: false, // Model de contrôle du pavé numérique de saisie du poids du contenant
+      saisiepoids: false, // Model de contrôle du pavé numérique de saisie du poids brut
+      saisiepieces: false, // Model de contrôle du pavé numérique de saisie du nombre de pièces sur la balance
+      alerte: false, // Model de contrôle de la boîte de dalogue d'alerte "J'ai lu"
+      alerteC: false, // Model de contrôle de la boîte de dalogue d'alerte "Poids du contenant excessif"
+      sanspoids: false, // Model de contrôle de la boîte de dialogue avertissant d'une demande d'étiquette sans produit sur la balance
+      exitApp: false, // Model de contrôle de la boîte de dialogue demandant la confirmation de la fermeture de l'application
+      articles: [], // liste des articles du fichier
+      selArticles: [], // sous ensemble des articles sélectionnés par leur code court
+      texteAlerte: '', // Texte de l'alerte générique
+      erreurBalance: '', // Libellé de l'erreur technique d'accès à la balance
+      ecouteBalance: false, // Vrai si la balance est en écoute, faux si elle est "déconnectée", en fait n'est plus écoutée
+      poidsBalance: 0, // Poids brut (pesé ou saisi)
+      poidsContenant: 0, // Poids du contenant
+      nbpieces: 0, // Nombre de pièces sur la balance
+      codeCourt: '', // Code court saisi par le client (ou les 2 première lettres du nom - 0 1 ou 2 caractères)
       alphabet1: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'],
       alphabet2: ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
-      t1: null,
-      t2: null,
-      t3: null,
-      enserie: false
+      t1: null, // Objet Timeout pour la boîte de dialogue coordonnateur
+      t2: null, // Objet générique de Timeout pour tous les dialogues auxquels le client peut oublier de répondre
+      t3: null, // Objet de Timeout pour le menu du coordonnateur
+      enserie: false // Mode de saisie en série activé ou non
     }
   },
 
   watch: {
+    // Détection du fait d'avoir posé un article sur la balance
     poidsBalance (apres, avant) {
       if (apres === 0 && avant !== 0) { this.raz() }
     },
+    // Détection de l'affirmation que le client est coordonnateur : enclenche le timeout pour répondre non
     coordo (apres, avant) {
       if (apres && !avant) {
         this.t1 = setTimeout(() => {
@@ -331,6 +392,7 @@ export default {
         }, toCoordo)
       }
     },
+    // Détection de l'ouverture du panneau gauche : enclenche le timeout pour le refermer
     panneauGauche (apres) {
       if (apres) {
         this.t3 = setTimeout(() => { this.panneauGauche = false; this.t3 = null }, toCoordo)
@@ -338,6 +400,7 @@ export default {
         if (this.t3) { clearTimeout(this.t3); this.t3 = null }
       }
     },
+    // Détection de l'ouverture du pavé numérique pour saisir le poids du contenant : enclenche le timeout pour le refermer
     alerteC (apres) {
       if (apres) {
         this.t3 = setTimeout(() => { this.alerteC = false; this.t3 = null }, toCoordo)
@@ -345,6 +408,7 @@ export default {
         if (this.t3) { clearTimeout(this.t3); this.t3 = null }
       }
     },
+    // Détection de l'ouverture de la boîte de dialogue d'alerte : enclenche le timeout pour la refermer (J'ai lu)
     alerte (apres) {
       if (apres) {
         this.t3 = setTimeout(() => { this.alerte = false; this.t3 = null }, toCoordo)
@@ -352,6 +416,7 @@ export default {
         if (this.t3) { clearTimeout(this.t3); this.t3 = null }
       }
     },
+    // Détection de l'ouverture de la boîte de dialogue pour confirmer la sortie de l'application : enclenche le timeout pour la refermer sans sortir
     exitApp (apres) {
       if (apres) {
         this.t3 = setTimeout(() => { this.exitApp = false; this.t3 = null }, toCoordo)
@@ -359,6 +424,7 @@ export default {
         if (this.t3) { clearTimeout(this.t3); this.t3 = null }
       }
     },
+    // Détection de l'ouverture de la boîte de dialogue pour confirmer la lecture du message "demande d'étiquette sans poids" : enclenche le timeout pour la refermer (J'ai lu)
     sanspoids (apres) {
       if (apres) {
         this.t3 = setTimeout(() => { this.sanspoids = false; this.t3 = null }, toCN)
@@ -373,11 +439,13 @@ export default {
       config.quit()
     },
 
+    // Fin du mode saisie en série, tout est remis à zéro
     finSerie () {
       this.enserie = false
       this.raz()
     },
 
+    // Ouverture du pavé numérique pour la saise du poids du contenant : arme le timeout pour le fermer
     saisieC() {
       this.saisiecont = true
       this.t2 = setTimeout(() => {
@@ -387,6 +455,7 @@ export default {
       }, toCN)
     },
 
+    // Ouverture du pavé numérique pour la saise du poids brut : arme le timeout pour le fermer
     saisieP() {
       if (this.ecouteBalance) { return }
       this.saisiepoids = true
@@ -397,6 +466,7 @@ export default {
       }, toCN)
     },
 
+    // Ouverture du pavé numérique pour la saise du nombre de pièces : arme le timeout pour le fermer
     saisieN() {
       this.saisiepieces = true
       this.t2 = setTimeout(() => {
@@ -406,23 +476,44 @@ export default {
       }, toCN)
     },
 
-    detectionArticles(p) {
+    /*
+    Détection périodique du changement éventuel du fichier articles.csv
+    N'opère pas quand un code court a été saisi : on ne change pas le fichier en cours de pesée
+    Relance la détection / chargement en pooling
+    */
+    detectionArticles() {
       if (!this.codeCourt) {
         let mtime = mtimeArticles()
         if (mtime && mtime !== this.mtime) {
-          this.chargementArticles()
+          lectureArticles((err, articles, mtime) => {
+            // A la fin de la lecture des articles
+            if (!err) {
+              this.articles = articles
+              this.mtime = mtime
+              this.raz()
+            } else {
+              this.texteAlerte = 'Le fichier des articles est corrompu ou absent\n' + config.articles + '\n' + err
+              this.alerte = true
+              this.raz()
+            }
+          })
         }
       }
       setTimeout(() => {
-        this.detectionArticles(p)
+        this.detectionArticles()
       }, poolingArticles)
     },
 
+    // Effacement du code court : la sélection devient vide
     effaceCode () {
       this.codeCourt = ''
       this.selArticles = []
     },
 
+    /*
+    Remise à zéro de tout,
+    SAUF en mode de saisie en série où le poids du contenant, le code court et la sélection des articles est conservée
+    */
     raz() {
       this.poidsBalance = 0
       if (!this.enserie) {
@@ -439,10 +530,9 @@ export default {
       this.coordo = false
     },
 
-    demandePoids() {
-      this.balance._demandePoids()
-    },
-
+    /*
+    Retour du pavé numérique : le poids du contenant est fini d'être saisi
+    */
     saisiecontok(p) {
       this.saisiecont = false
       if (this.t2) {
@@ -451,13 +541,16 @@ export default {
       }
       if (p !== -1) {
         if (this.poidsBalance && p >= this.poidsBalance) {
-          this.alerteC = true
+          this.alerteC = true // Attention poids du contenant supérieur au poids brut
         } else {
           this.poidsContenant = p
         }
       }
     },
 
+    /*
+    Retour du pavé numérique : le poids brut est fini d'être saisi (manuellement donc, pas par la balance)
+    */
     saisiepoidsok(p) {
       this.saisiepoids = false
       if (this.t2) {
@@ -474,20 +567,6 @@ export default {
       }
     },
 
-    chargementArticles () {
-      lectureArticles((err, articles, mtime) => {
-        if (!err) {
-          this.articles = articles
-        } else {
-          this.texteAlerte = 'Le fichier des articles est corrompu ou absent\n' + config.articlesPath + '\n' + err
-          this.alerte = true
-        }
-        this.mtime = mtime
-        this.raz()
-        this.panneauGauche = false
-      })
-    },
-
     async deconnecterBalance () {
       this.raz()
       await this.balance.finEcoute()
@@ -497,6 +576,9 @@ export default {
       await this.balance.debutEcoute()
     },
 
+    /*
+    Un nouveau poids a été envoyé par la balance qui donne son état d'écoute, son erreur éventuelle et le poids
+    */
     poidsRecu (ecoute, err, poids) {
       this.ecouteBalance = ecoute
       if (err) {
@@ -506,6 +588,7 @@ export default {
         this.erreurBalance = false
         this.poidsBalance = ecoute ? poids : 0
         if (this.poidsBalance === 0) {
+          // Le processus de pesée est réinitialisé à chaque fois que la balance annonce qu'il n'y a rien sur le plateau
           this.raz()
         }
       }
@@ -513,6 +596,10 @@ export default {
 
     format (p) { return formatPoids(p) },
 
+    /*
+    Le bouton d'une lettre a été apputé sur l'écran tactile : ça complète le code court
+    En fait ça ne prend qu'au mieux les deux dernières frappes
+    */
     choixLettre(l) {
       this.codeCourt = this.codeCourt + l
       if (this.codeCourt.length === 3) {
@@ -521,6 +608,11 @@ export default {
       this.filtre()
     },
 
+    /*
+    Etablit la sélction des articles correspondant au code court frappé ou au deux premières lettres du nom
+    La sélection par "code court" vient avant celle par le début du nom pour que les articles apparaissent en priorité
+    Le code court peut avoir 1 ou 2 caractères
+    */
     filtre() {
       this.selArticles = []
       if (this.codeCourt.length === 0) {
@@ -529,22 +621,29 @@ export default {
       if (this.codeCourt.length === 1) {
         for (let i = 0; i < this.articles.length; i++) {
           let art = this.articles[i]
+          if (art.codeCourt.chartAt(0) === this.codeCourt) this.selArticles.push(art)
+        }
+        for (let i = 0; i < this.articles.length; i++) {
+          let art = this.articles[i]
           let nx = removeDiacritics(art.nom.substring(0, 1).toUpperCase())
-          if (nx === this.codeCourt) { this.selArticles.push(art) }
+          if (this.codeCourt === nx) this.selArticles.push(art)
         }
         return
       }
       for (let i = 0; i < this.articles.length; i++) {
         let art = this.articles[i]
-        if (art.codeCourt === this.codeCourt) {
-          this.selArticles.push(art)
-        } else {
-          let nx = removeDiacritics(art.nom.substring(0, 2).toUpperCase())
-          if (this.codeCourt === nx) { this.selArticles.push(art) }
-        }
+        if (art.codeCourt === this.codeCourt) this.selArticles.push(art)
+      }
+      for (let i = 0; i < this.articles.length; i++) {
+        let art = this.articles[i]
+        let nx = removeDiacritics(art.nom.substring(0, 2).toUpperCase())
+        if (this.codeCourt === nx) this.selArticles.push(art)
       }
     },
 
+    /*
+    Clic sur la fiche d'un article
+    */
     clicArticle(article) {
       let c1 = article.codeCourt.charAt(0)
       if (this.enserie && c1 < 'W') {
@@ -556,15 +655,19 @@ export default {
         this.selArticles = [article]
       }
       if (this.poidsBalance === 0) {
+        // Pas de poids sur la balance : refus SAUF si c'est un article en nombre de pièces et qu'on est en saisie en série
         if (article.poidsPiece === -1 || (article.poidsPiece !== -1 && !this.enserie)) {
           this.sanspoids = true
           return
         }
       }
       if (article.poidsPiece === -1) {
+        // Si c'est un article au poids : on peut imprimer l'étiquette
         this.imprimer(article, this.poidsBalance, this.poidsContenant)
       } else {
+        // C'est un aricle en nombre de pièces, il faut demande combien il y en a, SAUF si c'est une saisie en série (c'est 1)
         if (!this.enserie) {
+          // on tente une approximation du nombre d'articles en fonction du poids moyen de la pièce (quand il est connu)
           this.articleCourant = article
           this.nbpieces = article.poidsPiece > 0 ? Math.round(this.poidsBalance / article.poidsPiece) : 0
           this.saisiepieces = true
@@ -574,6 +677,9 @@ export default {
       }
     },
 
+    /*
+    Retour de la saisie du nombre d'unités sur le plateau
+    */
     saisieunitesok(nb) {
       this.saisiepieces = false
       if (this.t2) {
@@ -587,16 +693,23 @@ export default {
       }
     },
 
+    /*
+    Impression de l'étiquette
+    */
     async imprimer(article, poidsB, poidsC) {
       this.raz()
       try {
         // let e =
         let err = await etiquette(this.ecouteBalance, article, poidsB, poidsC)
         if (err) {
+          this.texteAlerte = 'L\'impression de l\'étiquette a échoué (problème \'imprimante)\nAppeler le coordonnateur.\n' + err
+          this.alerte = true
           console.log('ERR : ' + err)
         }
         // console.log(e)
       } catch (err) {
+        this.texteAlerte = 'L\'impression de l\'étiquette a échoué (problème \'imprimante)\nAppeler le coordonnateur.\n' + err
+        this.alerte = true
         console.log(err.message)
       }
     }

@@ -1,14 +1,38 @@
-export const global = {
+/*
+Ce module est identique dans "balance" et "produits" pour éviter des calculs éventuellement divergents.
+Il comporte :
+- une zone "statique" d'échange entre tous les modules : c'est l'objet "global". Principalement il contien la référence de l'objet App.vue
+- des fonctions utilitaires : toutes ne sont pas utilisées dans "balance" (mais le sont dans "produits")
+*/
 
+// La zone "satique" d'échange entre tous les modules
+export const global = {
 }
 
+/*
+Calcul des codes courts déduits du numéro du produit
+On évite des codes courts à deux lettres qui pourraient être des débuts de noms de produits.
+On évite les codes courts qui sont affectables explicitement par le gestionnaire des produits pour les pesée en série,
+à savoir ceux commençant par W X Y Z
+On va donc générer une liste de code courts à partir des 26 lettres selon les règles suivantes :
+- deux voyelles de suite : toutefois quelques combinaisons "pourraient" apparaître en début de nom, elles sont exclues.
+- deux consonnes de suite : là aussi quelques combinaisons interdites.
+*/
+// liste des voyelles pouvant apparaître en première et seconde lettres du code court
 const v1 = 'AEIOU'
 const v2 = 'AEIOUY'
+
+// listes des consommes pouvant apparaître en première et seconde lettres du code court
 const c1 = 'BCDFGHJKLMNPQRSTV'
 const c2 = 'BCDFGHJKLMNPQRSTVWXZ'
+
+// liste des codes courts qui pouraient appaaraître comme début d'un nom de produit (par exemple 'AI' pour 'Ail' ...)
 const non = ['AI', 'AU', 'EU', 'OI', 'OU', 'BL', 'CH', 'FL', 'GL', 'PL', 'SL']
+
+// lisre des codes courts générés
 let codes = []
 
+// génération pour ceux commençant par une voyelle et suivi d'une voyelle
 for (let i = 0, x1 = ''; (x1 = v1.charAt(i)); i++) {
   for (let j = 0, x2 = ''; (x2 = v2.charAt(j)); j++) {
     let cc = x1 + x2
@@ -16,6 +40,7 @@ for (let i = 0, x1 = ''; (x1 = v1.charAt(i)); i++) {
   }
 }
 
+// génération pour ceux commençant par une consonne et suivi d'une consonne
 for (let i = 0, x1 = ''; (x1 = c1.charAt(i)); i++) {
   for (let j = 0, x2 = ''; (x2 = c2.charAt(j)); j++) {
     let cc = x1 + x2
@@ -23,10 +48,21 @@ for (let i = 0, x1 = ''; (x1 = c1.charAt(i)); i++) {
   }
 }
 
+/*
+Le code court est :
+- soit attribué explicitement par le gestionnaire des produits : son nom commence par '[XA]' par exemple où XA est le code court
+- soit est celui de rang n dans la liste des codes où n est le reste de la division du numéro de produit (id) par le nombre de codes courts générés.
+*/
 export function codeCourtDeId (id, nom) {
   return nom.startsWith('[') && nom.charAt(3) === ']' ? nom.substring(1, 3) : codes[id % codes.length]
 }
 
+/*
+Pour les (rares) produits décomptés au nombre de pièces plutôt qu'au poids, le nom du produit PEUT se terminer par
+//120 si le poids moyen estimé d'une pièce est de 120g
+Dans ce cas, une fois le paquet posé sur la balance, si celle-ci indique 410g on proposera un nombre de pièces de 3
+afin de simplifier la saisie
+*/
 export function poidsPiece (unite, nom) {
   if (unite.startsWith('U')) {
     let i = nom.lastIndexOf('//')
@@ -42,21 +78,33 @@ export function poidsPiece (unite, nom) {
   }
 }
 
+/*
+Comme nom de fichier "modèle" on accepte une combinaison de lettres, chiffres , - et _
+Certains codes sont numériques.
+Ci-après les deux expressions régulières correspondantes
+*/
 const regb64u = RegExp(/^[a-zA-Z0-9-_]*$/)
 const regChiffres = RegExp(/^\d+$/)
 
+/*
+Vérifie qu'un texte ayant une longueur minimale et maximale fixée est bien
+un code en base64 de type URL (sans le padding == à la fin)
+*/
 export function b64u (s, min, max) {
   if (!s || s.length < min || s.length > max) { return false }
   return regb64u.test(s)
 }
 
+/* Edition d'un nombre à 2 chiffres avec 0 devant s'il est inférieur à 10 */
 function e2(n) { return e2 === 0 ? '00' : (n < 10 ? '0' + n : '' + n) }
 
+/* Date et heure courante en secpndes sous la forme : 2020-03-21_152135 */
 export function dateHeure () {
   const d = new Date()
   return d.getFullYear() + '-' + e2(d.getMonth() + 1) + '-' + e2(d.getDate()) + '_' + e2(d.getHours()) + e2(d.getMinutes()) + e2(d.getSeconds())
 }
 
+/* Formate un prix donné par un entier en centimes en euro : 3.61 0.45 */
 export function formatPrix (p) {
   if (!p || p < 0) { return '0.00' }
   const e = Math.floor(p / 100)
@@ -64,6 +112,11 @@ export function formatPrix (p) {
   return '' + e + '.' + (c > 9 ? c : '0' + c)
 }
 
+/*
+Formate un poids donné en g :
+- soit 5g 15g 125g pour les pods inférieur au kg
+- soit 12,430Kg pour les pods supérieurs ou égaux au Kg
+*/
 export function formatPoids (p) {
   if (!p) return '0'
   if (p < 1000) {
@@ -75,11 +128,19 @@ export function formatPoids (p) {
   // return '13,457Kg'
 }
 
+/*
+Retourne la valeur entière number d'un string de n chiffres au plus de long mais non vide.
+En cas d'erreur retourne false
+*/
 export function nChiffres(s, n) {
   if (typeof s !== 'string' || s.length === 0 || s.length > n || !regChiffres.test(s)) return false
   return parseInt(s, 10)
 }
 
+/*
+En argument s est un string donnant un prix en euros 3.45 0.50 par exemple
+Retourne le montant entier en centimes OU false si la syntaxe d'entrée n'est pas valide
+*/
 export function centimes (s) {
   if (typeof s !== 'string' || s.length === 0) return false
   let i = s.indexOf('.')
@@ -101,27 +162,13 @@ export function centimes (s) {
   return (u * 100) + c
 }
 
-/*
-Le premier paramètre est un code barre à 13 chiffres :
-(en fait le tout premier chiffre sur 13 vaut toujours 0 pour ces articles).
+/* EAN13
+Le premier paramètre est un code barre à 13 chiffres.
 Si le second paramètre p (c'est un nombre) est défini, c'est un poids ou un nombre d'articles
 qui va remplacer les 5 chiffres de droite et calculer la clé.
-Retourne null en cas d'erreur (ean pas de 13 chiffres, p > 99999)
-
-Calcul de la clé
-Les chiffres sont numérotés de droite à gauche;
-Soit x, la somme des chiffres pairs et y la somme des chiffres impairs
-Calculons z = x +3*y
-Soit m le nombre divisible par 10 immédiatement supérieur à z
-La somme de contrôle est : m - z
-
-Exemple : 978020113447
-x = 4 + 3 + 1 + 2 + 8 + 9 = 27
-y = 7 + 4 + 1 + 0 + 0 + 7 = 19
-z = 3 * 19 + 27 = 84
-m = 90
-Somme de contrôle = 90 - 84 = 6
-EAN13 ---> 9 780201 134476
+Retourne un couple avec :
+- un libellé d'erreur qui commence par 'code-barre' en cas d'erreur (numéricité, clé)
+- le code EAN13, soit d'entrée, soit celui d'entrée dont les chiffres du poids ont été remplacés
 */
 export function editEAN(ean, p) {
   if (typeof ean !== 'string' || ean.length !== 13) return ['code-barre : doit avoir exactement 13 chiffres', null]
@@ -142,6 +189,22 @@ export function editEAN(ean, p) {
   }
 }
 
+/*
+Calcul de la clé d'un string EAN13 (bien formé, 13 chiffres)
+Les chiffres sont numérotés de droite à gauche;
+Soit x, la somme des chiffres pairs et y la somme des chiffres impairs
+Calculons z = x +3*y
+Soit m le nombre divisible par 10 immédiatement supérieur à z
+La somme de contrôle est : m - z
+
+Exemple : 978020113447
+x = 4 + 3 + 1 + 2 + 8 + 9 = 27
+y = 7 + 4 + 1 + 0 + 0 + 7 = 19
+z = 3 * 19 + 27 = 84
+m = 90
+Somme de contrôle = 90 - 84 = 6
+EAN13 ---> 9 780201 134476
+*/
 export function cleEAN (s) {
   let v = new Array(13)
   for (let i = 0; i < 13; i++) v[i] = s.charCodeAt(i) - 48
@@ -158,6 +221,13 @@ export function cleEAN (s) {
   }
   return String.fromCharCode(48 + c)
 }
+
+/*
+Remplacement des lettres accentuées par la lettre non accentuée.
+Mais c'est très compliqué dans la vraie vie.
+Séquence intégralement pompée sur Internet qui a l'air de marcher sur les cas qui se sont présentées.
+Pas essayé de vraiement comprendre comment ça marche, ni si c'est exhaustif, ni s'il y a des bugs.
+*/
 
 const defaultDiacriticsRemovalMap = [
   { 'base': 'A', 'letters': /[\u0041\u24B6\uFF21\u00C0\u00C1\u00C2\u1EA6\u1EA4\u1EAA\u1EA8\u00C3\u0100\u0102\u1EB0\u1EAE\u1EB4\u1EB2\u0226\u01E0\u00C4\u01DE\u1EA2\u00C5\u01FA\u01CD\u0200\u0202\u1EA0\u1EAC\u1EB6\u1E00\u0104\u023A\u2C6F]/g },

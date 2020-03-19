@@ -2,6 +2,7 @@
 "balance": "COM5",
 "imprimante": "WS4",
 "marge": 100,
+"lgnomsuretiquette": 32,
 "articles": "C:\\Users\\Domi\\balance\\articles.csv",
 "timeoutClavierNumerique": 20000,
 "timeoutCoordo": 10000,

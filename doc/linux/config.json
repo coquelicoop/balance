@@ -1,7 +1,8 @@
 {
 "balance": "/dev/ttyUSB0",
 "imprimante": "WS408-SZPL",
-"marge":100,
+"marge": 100,
+"lgnomsuretiquette": 32,
 "articles": "~/balance/articles.csv",
 "timeoutClavierNumerique": 20000,
 "timeoutCoordo": 10000,
