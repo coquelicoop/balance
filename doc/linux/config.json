@@ -1,8 +1,9 @@
 {
 "balance": "/dev/ttyUSB0",
 "imprimante": "WS408-SZPL",
-"marge": 100,
+"marge": 210,
 "lgnomsuretiquette": 32,
+"zpl": "^XA\n^CI28\n^CF0,0,30\n^FO${m + 10},15,0^FD${article.nom1}^FS\n^FO${m + 10},45,0^FD${article.nom2}^FS\n^CF0,0,20\n^FO${m + 10},85,0^FDPrix est.^FS\n^FO${m + 120},85,0^FD${type}^FS\n^CF0,0,28\n^FO${m + 10},105,0^FD${prix}€^FS\n^FO${m + 120},105,0^FD${poidsTare}^FS\n^CF0,0,20\n^FO${m + 10},135,0^FDPesé le : ${date}^FS\n^FO${m + 65},160^BY3,2,100^BEN,100,Y,N^FD${ean}^FS\n^XZ\n",
 "articles": "~/balance/articles.csv",
 "timeoutClavierNumerique": 20000,
 "timeoutCoordo": 10000,

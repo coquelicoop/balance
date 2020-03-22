@@ -1,6 +1,6 @@
 <template>
   <div class="carteArticle shadow-5 row items-center" @click="$emit('clic-article')">
-    <div class="col-4"><img class="image" :src="'data:image/jpeg;base64,' + article.image"></div>
+    <div class="col-4"><img v-if="article.image" class="image" :src="'data:image/jpeg;base64,' + article.image"></div>
     <div class="col-8 droite column">
       <div class="col row justify-around items-start haut">
         <div class="col codecourt"><span class="codecourt2">{{ article.codeCourt }}</span></div>
@@ -14,6 +14,11 @@
 </template>
 
 <script>
+/*
+La carte article est celle qui s'affiche pour un produit dans la zone principale.
+Elle n'a qu'une seule interaction: le clic qui désigne que l'article est sélectionné et qui émit un événement "clic-article".
+Calcul rusé des hauteurs et largeurs de l'image sachant qu'elle occupe 4 / 12 de la largeur.
+*/
 export default {
   name: 'CarteArticle',
   props: ['article'],
@@ -56,6 +61,7 @@ $fsnp: $hauteurp / 3
 
 .image
   border-radius: 0.5rem
+  background-color: $grey-2
   width: $hauteuri
   height: $hauteuri
   margin: 0.1rem

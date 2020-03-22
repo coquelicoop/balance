@@ -2,8 +2,13 @@
 
 Le système de pesée comporte deux applications stand-alone :
 
-- une application **Articles*** qui tourne su PC de gestion du réseau local et qui gère un ficier articles.csv qui est utilisé par la ou les balances du réseau local du magasin. Cette application est facultative et le fichiers articles.csv peut être édité / géré par MS-Excel ou LibreOffice Calc.
+- une application **Produits*** qui tourne su PC de gestion du réseau local et qui gère un ficier articles.csv qui est utilisé par la ou les balances du réseau local du magasin. Cette application est facultative et le fichiers articles.csv peut être édité / géré par MS-Excel ou LibreOffice Calc.
 - une application **Balance** qui tourne sur un PC gérant une balance et une imprimante d'étiquette (plusieurs PCs "balance" peuvent co-exister sur le LAN). Une application Balance lit le fichier ci-dessus et permet de récupérer le poids d'un produit pesé et d'en faire imprimer l'étiquette auto-collante qui sera scannée en caisse.
+- une application **importOdoo** qui récupère le fichier des articles depuis Odoo. Il peut :
+    - soit ne pas être utilisé : l'application **Produits** dispose d'un bouton pour effectuer cet import à la demade et
+    surtout permettre d'en vérifier / modifier les articles ;
+    - soit être lancée à l'initialisation du PC serveur, voire être mis dans un cron pour une demande périodique.
+    - c'est un choix de gestion du magasin : faut-il ou non répercuter au plus tôt les mises à jour centrales des articles ou au contraire n'effectuerr celà qu'une fois en début de journée (ou sur demande).
 
 Usuellement le PC de gestion a un rôle de serveur de fichiers sur le LAN du magasin mais il est aussi complètement possible que chaque PC gérant une balance ait une copie de ce fichier localement et ne dépende en rien du LAN.
 
@@ -12,10 +17,10 @@ Les plateformes supportées sont en architecture x64 sous win32 et linux.
 Il est toutefois possible d'effectuer d'autres builds pour d'autres plateformes / architectures.
 
 ## Frameworks utilisés
-Les applications Articles et Balance sont open-source (sous n'importe quelle license GNU, GPL, MIT, Mozilla ... qui vous convient).
+Les applications Produits, importOdoo et Balance sont open-source (sous n'importe quelle license GNU, GPL, MIT, Mozilla ... qui vous convient).
 
 Elles utilisent les socles suivants :
-- Node
+- Node (importOdoo n'utilise que Node)
 - Electron
 - Vue
 - Quasar

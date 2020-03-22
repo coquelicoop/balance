@@ -114,7 +114,7 @@
       <div v-if="codeCourt.length !== 0 && this.selArticles.length == 0" class="av-msg shadow-5">{{ m4 }}</div>
       <!-- Fiches des articles correspondants au code court -->
       <div v-if="this.selArticles.length !== 0" class="row justify-around">
-        <carte-article v-for="article in selArticles" :key="article.id" :article="article" @clic-article="clicArticle(article)"></carte-article>
+        <carte-article v-for="article in selArticles" :key="article.idx" :article="article" @clic-article="clicArticle(article)"></carte-article>
       </div>
     </q-page-container>
 
@@ -225,8 +225,9 @@ function decore (data) {
     const n = parseInt(data.id, 10)
     // Obtient le code court, depuis l'id ou depuis le nom
     data.codeCourt = codeCourtDeId(n, data.nom)
-    // Enlève pour l'affichage le code court quand il figure en tête du nom
-    if (data.nom.startsWith('[' + data.codeCourt + ']')) data.nom = data.nom.substring(4)
+    // Enlève pour l'affichage le code court quand il figure
+    const k = data.nom.indexOf('[' + data.codeCourt + ']')
+    if (k !== -1) data.nom = data.nom.substring(0, k) + data.nom.substring(k + 4)
     // Obtient le poids moyen d'une pièce figurant éventuellement au bout du nom
     let [nom2, p] = poidsPiece(data.unite, data.nom)
     data.poidsPiece = p
@@ -287,10 +288,12 @@ function lectureArticles(cb) {
     rs.on('error', (e) => {
         cb(e.message)
     })
+    let idx = 1
     try {
         rs.pipe(csv({ separator: ';' }))
         .on('data', (data) => {
             decore(data)
+            data.idx = idx++
             articles.push(data)
         })
         .on('end', () => {
@@ -618,26 +621,37 @@ export default {
       if (this.codeCourt.length === 0) {
         return
       }
+      const sel = [] // pour éviter de voir le même article affiché 2 fois (par son code court et le début de son nom)
       if (this.codeCourt.length === 1) {
         for (let i = 0; i < this.articles.length; i++) {
           let art = this.articles[i]
-          if (art.codeCourt.chartAt(0) === this.codeCourt) this.selArticles.push(art)
+          if (art.codeCourt.charAt(0) === this.codeCourt) {
+            sel.push(art.idx)
+            this.selArticles.push(art)
+          }
         }
         for (let i = 0; i < this.articles.length; i++) {
           let art = this.articles[i]
-          let nx = removeDiacritics(art.nom.substring(0, 1).toUpperCase())
-          if (this.codeCourt === nx) this.selArticles.push(art)
+          if (sel.indexOf(art.idx) === -1) {
+            let nx = removeDiacritics(art.nom.substring(0, 1).toUpperCase())
+            if (this.codeCourt === nx) this.selArticles.push(art)
+          }
         }
         return
       }
       for (let i = 0; i < this.articles.length; i++) {
         let art = this.articles[i]
-        if (art.codeCourt === this.codeCourt) this.selArticles.push(art)
+        if (art.codeCourt === this.codeCourt) {
+          sel.push(art.idx)
+          this.selArticles.push(art)
+        }
       }
       for (let i = 0; i < this.articles.length; i++) {
         let art = this.articles[i]
-        let nx = removeDiacritics(art.nom.substring(0, 2).toUpperCase())
-        if (this.codeCourt === nx) this.selArticles.push(art)
+        if (sel.indexOf(art.idx) === -1) {
+          let nx = removeDiacritics(art.nom.substring(0, 2).toUpperCase())
+          if (this.codeCourt === nx) this.selArticles.push(art)
+        }
       }
     },
 

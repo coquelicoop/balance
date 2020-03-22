@@ -1,5 +1,6 @@
 <template>
     <div class="pave column items-center">
+        <!-- Par simplification visuelle le poids s'affiche en grammes pour ne pas inciter l'utilisateur à chercher une virgule -->
         <div class="col poids">{{ '' + poids + (!unites ? 'g' : (poids > 1 ? ' pièces' : ' pièce'))}}</div>
         <div class="col row items-center">
             <div class="chiffre shadow-5" @click="clic(1)">1</div>
@@ -25,24 +26,39 @@
 </template>
 
 <script>
+/*
+Le composant "pavé numérique" reçoit comme attribut d'entrée :
+- une valeur initiale : c'est par exemple le cas pour la saisie d'un nombre de paquets où une valeur probable est passée comme valeur initiale,
+- unites : si true, la valeur est un nombre d'unités, si false c'est un poids à saisir.
+Les touches 0 à 9 permettent d'ajouter un chiffre au nombre actuellement saisi.
+La touche "Eff" est un backspace.
+La touche OK est la validation du nombre courant.
+La sortie du composant se fait par OK qui émet l'événement 'saisie-ok' qui est écouté par le composat qui a inclu le pavé numérique.
+*/
 export default {
   name: 'PaveNumerique',
   props: ['valeur', 'unites'],
   data () {
     return {
-        poids: this.valeur
+        poids: this.valeur // en fait c'est un poids en g ou un nombre d'unités
     }
   },
   methods: {
       clic(n) {
-        if (n === 'ok') {
+        if (n === 'ok') { // Evénement de fin avec transmission du poids (ou nombre d'unités) comme data
             this.$emit('saisie-ok', this.poids)
             return
         }
         if (n === 'bs') {
-            this.poids = Math.floor(this.poids / 10)
+            // L'effacement du dernier chiffre revient à une division entière par 10. Ne fait rien quand c'est déjà 0
+            if (this.poids > 0) this.poids = Math.floor(this.poids / 10)
             return
         }
+        /*
+        On ne peut ajouter un chiffre que si le nombre déjà entré n'a pas atteint le maximum de chiffres admis :
+        - pour les unités c'est 2 chiffres (au plus 99 unités). Il faut donc que le nombre actuel soit inférieur à 10.
+        - pour les poids c'est 5 chiffres (99,999kg).
+        */
         let max = this.unites ? 10 : 10000
         if (this.poids < max) {
             this.poids = (this.poids * 10) + n

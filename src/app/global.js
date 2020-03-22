@@ -54,7 +54,8 @@ Le code court est :
 - soit est celui de rang n dans la liste des codes où n est le reste de la division du numéro de produit (id) par le nombre de codes courts générés.
 */
 export function codeCourtDeId (id, nom) {
-  return nom.startsWith('[') && nom.charAt(3) === ']' ? nom.substring(1, 3) : codes[id % codes.length]
+  const l = nom.indexOf('[')
+  return l !== -1 && nom.charAt(l + 3) === ']' ? nom.substring(l + 1, l + 3) : codes[id % codes.length]
 }
 
 /*
@@ -124,7 +125,7 @@ export function formatPoids (p) {
   }
   const kg = Math.floor(p / 1000)
   const g = Math.round(p % 1000)
-  return kg + ', ' + ((g < 10 ? '00' : (g < 100 ? '0' : '')) + g) + 'Kg'
+  return kg + ',' + ((g < 10 ? '00' : (g < 100 ? '0' : '')) + g) + 'Kg'
   // return '13,457Kg'
 }
 
@@ -176,9 +177,9 @@ export function editEAN(ean, p) {
   let s = ean
   const ap = typeof p !== 'undefined'
   if (ap) {
-    if (typeof p !== 'number' || p < 0 || p > 99999) { return ['code-barre : le poids n\'est pas numérique et compris entre 1 et 99999', null] }
-    let x = '' + p
-    s = ean.substrin(0, 0) + ('0000' + x).substring(x.length) + '0'
+    if (typeof p !== 'number' || p < 0 || p > 99999) return ['code-barre : le poids n\'est pas numérique et compris entre 1 et 99999', null]
+    let x = '0000' + p
+    s = ean.substring(0, 7) + x.substring(x.length - 5) + '0'
   }
   let c = cleEAN(s)
   let cx = s.substring(12)
