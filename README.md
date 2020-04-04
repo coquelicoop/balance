@@ -40,10 +40,16 @@ Les deux systèmes sont totalement compatibles, voire dans un même magasin :
 - même balance,
 - même imprimante d'étiquette (en fait toute imprimante interprétant LE standard du marché ZPL).
 
-## Documentation
-Elle figure dans le répertoire doc et comporte :
-- quelques fichiers d'exemple, configuration icône / image, .desktop pour Linux ...
-- Des manuels en .docx / PDF :
-    - Manuel d'Utilisation
-    - Manuel d'Installation
-    - Manuel de Développement avec quelques informations pour cloner les git de développement et modifier / compléter les applications sans avoir à trop chercher dans tout le code.
+Contact : contact@coquelicoop.fr
+
+## Documentation et distribution
+Demander l'URL à contact@coquelicoop.fr
+
+La distribution comporte :
+- les fichiers .zip (pour win32 x64) et .tgz (pour Linux x64) à décompresser : les exécutables y figurent.
+- la documentation :
+    - quelques fichiers d'exemple, configuration icône / image, .desktop pour Linux ...
+    - Des manuels en .docx / PDF :
+        - Manuel d'Utilisation
+        - Manuel d'Installation
+        - Manuel de Développement avec quelques informations pour cloner les git de développement et modifier / compléter les applications sans avoir à trop chercher dans tout le code.
