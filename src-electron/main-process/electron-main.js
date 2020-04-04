@@ -26,30 +26,35 @@ function createWindow () {
   /**
    * Initial window options
    */
-  mainWindow = new BrowserWindow({
-    width: 1024, // en test seulement
-    height: 768, // en test seulement
-    useContentSize: true,
-    frame: true,
-    webPreferences: {
-      // Change from /quasar.conf.js > electron > nodeIntegration;
-      // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
-      // Erreur lint ci-après, mais ça marche, la variable est injectée par Quasar
-      nodeIntegration: QUASAR_NODE_INTEGRATION
-
-      // More info: /quasar-cli/developing-electron-apps/electron-preload-script
-      // preload: path.resolve(__dirname, 'electron-preload.js')
-    }
-  })
+  if (process.env.PROD) {
+    mainWindow = new BrowserWindow({
+      frame: false,
+      fullscreen: true,
+      webPreferences: {
+        // Change from /quasar.conf.js > electron > nodeIntegration;
+        // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
+        // Erreur lint ci-après, mais ça marche, la variable est injectée par Quasar
+        nodeIntegration: QUASAR_NODE_INTEGRATION
+        // More info: /quasar-cli/developing-electron-apps/electron-preload-script
+        // preload: path.resolve(__dirname, 'electron-preload.js')
+      }
+    })
+  } else {
+    mainWindow = new BrowserWindow({
+      width: 1024, // en test seulement
+      height: 768, // en test seulement
+      webPreferences: {
+        // Change from /quasar.conf.js > electron > nodeIntegration;
+        // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
+        // Erreur lint ci-après, mais ça marche, la variable est injectée par Quasar
+        nodeIntegration: QUASAR_NODE_INTEGRATION
+        // More info: /quasar-cli/developing-electron-apps/electron-preload-script
+        // preload: path.resolve(__dirname, 'electron-preload.js')
+      }
+    })
+  }
 
   mainWindow.loadURL(process.env.APP_URL)
-
-  if (process.env.PROD) { // full screen et pas de menu
-    mainWindow.setMenu(null)
-    mainWindow.setSimpleFullScreen(true)
-  } else {
-    // mainWindow.maximize()
-  }
 
   mainWindow.on('closed', () => {
     mainWindow = null
