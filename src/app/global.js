@@ -59,27 +59,6 @@ export function codeCourtDeId (id, nom) {
 }
 
 /*
-Pour les (rares) produits décomptés au nombre de pièces plutôt qu'au poids, le nom du produit PEUT se terminer par
-//120 si le poids moyen estimé d'une pièce est de 120g
-Dans ce cas, une fois le paquet posé sur la balance, si celle-ci indique 410g on proposera un nombre de pièces de 3
-afin de simplifier la saisie
-*/
-export function poidsPiece (unite, nom) {
-  if (unite.startsWith('U')) {
-    let i = nom.lastIndexOf('//')
-    if (i === -1) {
-        return [nom, 0]
-    } else {
-        const x = nom.substring(i + 2)
-        const p = parseInt(x, 10)
-        return [nom.substring(0, i), isNaN(p) ? 0 : p]
-    }
-  } else {
-      return [nom, -1]
-  }
-}
-
-/*
 Comme nom de fichier "modèle" on accepte une combinaison de lettres, chiffres , - et _
 Certains codes sont numériques.
 Ci-après les deux expressions régulières correspondantes

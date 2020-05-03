@@ -212,7 +212,7 @@ const fs = require('fs')
 const csv = require('csv-parser') // parser csv
 
 import { config } from './app/config'
-import { formatPoids, removeDiacritics, codeCourtDeId, poidsPiece } from './app/global'
+import { formatPoids, removeDiacritics, codeCourtDeId } from './app/global'
 import { Balance } from './app/portbalance'
 import { etiquette } from './app/zpl'
 
@@ -228,10 +228,9 @@ function decore (data) {
     // Enlève pour l'affichage le code court quand il figure
     const k = data.nom.indexOf('[' + data.codeCourt + ']')
     if (k !== -1) data.nom = data.nom.substring(0, k) + data.nom.substring(k + 4)
-    // Obtient le poids moyen d'une pièce figurant éventuellement au bout du nom
-    let [nom2, p] = poidsPiece(data.unite, data.nom)
-    data.poidsPiece = p
-    data.nom = nom2
+
+    data.unite = data.unite.startsWith('Unit')
+
     // Détermine si le produit est bio depuis son nom
     data.bio = data.nom.toUpperCase().indexOf('BIO') !== -1
 
@@ -240,7 +239,7 @@ function decore (data) {
     if (Number.isNaN(data.prixN)) { data.prixN = 0 }
 
     /*
-    Calcule les une ou deux lignes de dénomition du produit apparaissant sur l'étiquette
+    Calcule les une ou deux lignes de dénomination du produit apparaissant sur l'étiquette
     Une ligne a un nombre maximal de caractères
     Les mots ne sont pas coupés
     */
@@ -435,7 +434,7 @@ export default {
         if (this.t3) { clearTimeout(this.t3); this.t3 = null }
       }
     }
-},
+  },
 
   methods: {
     quit () {
@@ -670,20 +669,19 @@ export default {
       }
       if (this.poidsBalance === 0) {
         // Pas de poids sur la balance : refus SAUF si c'est un article en nombre de pièces et qu'on est en saisie en série
-        if (article.poidsPiece === -1 || (article.poidsPiece !== -1 && !this.enserie)) {
+        if (article.unite || (!article.unite && !this.enserie)) {
           this.sanspoids = true
           return
         }
       }
-      if (article.poidsPiece === -1) {
+      if (!article.unite) {
         // Si c'est un article au poids : on peut imprimer l'étiquette
         this.imprimer(article, this.poidsBalance, this.poidsContenant)
       } else {
         // C'est un aricle en nombre de pièces, il faut demande combien il y en a, SAUF si c'est une saisie en série (c'est 1)
         if (!this.enserie) {
-          // on tente une approximation du nombre d'articles en fonction du poids moyen de la pièce (quand il est connu)
           this.articleCourant = article
-          this.nbpieces = article.poidsPiece > 0 ? Math.round(this.poidsBalance / article.poidsPiece) : 0
+          this.nbpieces = 0
           this.saisiepieces = true
         } else {
           this.imprimer(article, 1)

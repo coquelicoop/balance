@@ -31,7 +31,7 @@ le texte sur l'étiquette selon sa largeur.
 
 */
 // eslint-disable-next-line no-template-curly-in-string
-const templateDefaut = '^XA\n^CI28\n^CF0,0,30\n^FO${m + 10},15,0^FD${article.nom1}^FS\n^FO${m + 10},45,0^FD${article.nom2}^FS\n^CF0,0,20\n^FO${m + 10},85,0^FDPrix est.^FS\n^FO${m + 100},85,0^FD${type}^FS\n^FO${m + 290},85,0^FDPesé le^FS\n^CF0,0,28\n^FO${m + 10},105,0^FD${prix}€^FS\n^FO${m + 100},105,0^FD${poidsTare}^FS\n^FO${m + 290},105,0^FD${date}^FS\n^FO${m + 85},150^BY3,2,100^BEN,100,Y,N^FD${ean}^FS\n^XZ\n'
+const templateDefaut = '^XA\n^CI28\n^CF0,0,30\n^FO${m + 10},15,0^FD${article.nom1}^FS\n^FO${m + 10},45,0^FD${article.nom2}^FS\n^CF0,0,20\n^FO${m + 10},80,0^FDPrix est.^FS\n^FO${m + 120},80,0^FD${type}^FS\n^FO${m + 340},80,0^FDPesé^FS\n^CF0,0,28\n^FO${m + 10},100,0^FD${prix}€^FS\n^FO${m + 120},100,0^FD${poidsTare}^FS\n^CF0,0,20\n^FO${m + 340},100,0^FD${date}^FS\n^FO${m + 70},140^BY3,2,20^BEN,60,Y,N^FD${ean}^FS\n^XZ\n'
 // eslint-disable-next-line no-unused-vars
 const template = config.zpl || templateDefaut
 
