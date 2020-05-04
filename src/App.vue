@@ -229,8 +229,6 @@ function decore (data) {
     const k = data.nom.indexOf('[' + data.codeCourt + ']')
     if (k !== -1) data.nom = data.nom.substring(0, k) + data.nom.substring(k + 4)
 
-    data.unite = data.unite.startsWith('Unit')
-
     // Détermine si le produit est bio depuis son nom
     data.bio = data.nom.toUpperCase().indexOf('BIO') !== -1
 
@@ -669,12 +667,12 @@ export default {
       }
       if (this.poidsBalance === 0) {
         // Pas de poids sur la balance : refus SAUF si c'est un article en nombre de pièces et qu'on est en saisie en série
-        if (article.unite || (!article.unite && !this.enserie)) {
+        if (article.unite !== 'kg' || (!article.unite === 'kg' && !this.enserie)) {
           this.sanspoids = true
           return
         }
       }
-      if (!article.unite) {
+      if (article.unite === 'kg') {
         // Si c'est un article au poids : on peut imprimer l'étiquette
         this.imprimer(article, this.poidsBalance, this.poidsContenant)
       } else {

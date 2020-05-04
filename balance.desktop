@@ -1,9 +1,8 @@
 [Desktop Entry]
 Name=balance
 Type=Application
-Exec=/home/daniel/git/balance/dist/electron/balance-linux-x64/balance
+Exec=/home/coquelicoop/balance/balance-linux-x64/balance
 Terminal=false
-Icon=/home/daniel/git/balance/balance.png
+Icon=/home/coquelicoop/balance/balance-linux-x64/balance.png
 NoDisplay=false
-Categories=Development;IDE;
-Name[fr_FR]=balance
+Categories=Utility;

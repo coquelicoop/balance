@@ -13,25 +13,9 @@ const path = require('path')
 Le template ZPL peut être donné dans la configuration à la place de celui par défaut :
 La marge m est donnée à part dans marge (210 par défaut) pour centrer plus facilement
 le texte sur l'étiquette selon sa largeur.
-
-^CI28
-^CF0,0,30
-^FO${m + 10},15,0^FD${article.nom1}^FS
-^FO${m + 10},45,0^FD${article.nom2}^FS
-^CF0,0,20
-^FO${m + 10},85,0^FDPrix est.^FS
-^FO${m + 120},85,0^FD${type}^FS
-^CF0,0,28
-^FO${m + 10},105,0^FD${prix}€^FS
-^FO${m + 120},105,0^FD${poidsTare}^FS
-^CF0,0,20
-^FO${m + 10},135,0^FDPesé le : ${date}^FS
-^FO${m + 65},160^BY3,2,100^BEN,100,Y,N^FD${ean}^FS
-^XZ
-
 */
 // eslint-disable-next-line no-template-curly-in-string
-const templateDefaut = '^XA\n^CI28\n^CF0,0,30\n^FO${m + 10},15,0^FD${article.nom1}^FS\n^FO${m + 10},45,0^FD${article.nom2}^FS\n^CF0,0,20\n^FO${m + 10},80,0^FDPrix est.^FS\n^FO${m + 120},80,0^FD${type}^FS\n^FO${m + 340},80,0^FDPesé^FS\n^CF0,0,28\n^FO${m + 10},100,0^FD${prix}€^FS\n^FO${m + 120},100,0^FD${poidsTare}^FS\n^CF0,0,20\n^FO${m + 340},100,0^FD${date}^FS\n^FO${m + 70},140^BY3,2,20^BEN,60,Y,N^FD${ean}^FS\n^XZ\n'
+const templateDefaut = '^XA\n^CI28\n^CF0,0,30\n^FO${m + 10},15,0^FD${article.nom1}^FS\n^FO${m + 10},45,0^FD${article.nom2}^FS\n^CF0,0,20\n^FO${m + 10},80,0^FDPrix est.^FS\n^FO${m + 120},80,0^FD${type}^FS\n^FO${m + 340},80,0^FDPesé le^FS\n^CF0,0,28\n^FO${m + 10},100,0^FD${prix}€^FS\n^FO${m + 120},100,0^FD${poidsTare}^FS\n^CF0,0,20\n^FO${m + 340},100,0^FD${date}^FS\n^FO${m + 70},140^BY3,2,20^BEN,60,Y,N^FD${ean}^FS\n^XZ\n'
 // eslint-disable-next-line no-unused-vars
 const template = config.zpl || templateDefaut
 
@@ -103,8 +87,9 @@ export async function etiquette(pese, article, poidsB, poidsC) {
 
     let net = poidsC ? poidsB - poidsC : poidsB
 
-    if (article.poidsPiece === -1) {
-        type = pese ? 'Poids Net+Tare' : 'Poids SAISI+Tare'
+    if (article.unite === 'kg') {
+        type = pese ? 'Poids Net' : 'Poids SAISI'
+        if (poidsC) type += '+Tare'
         poidsTare = formatPoids(net) + (poidsC ? '+' + formatPoids(poidsC) : '')
     } else {
         type = 'Nombre de pièces'
@@ -113,7 +98,7 @@ export async function etiquette(pese, article, poidsB, poidsC) {
     if (!article.prixN) {
         prix = '?'
     } else {
-        if (article.poidsPiece === -1) {
+        if (article.unite === 'kg') {
             prix = ('' + Math.round(article.prixN * net / 10) / 100).replace('.', ',')
         } else {
             prix = ('' + (article.prixN * net)).replace('.', ',')
