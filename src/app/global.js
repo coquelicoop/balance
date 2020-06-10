@@ -136,10 +136,7 @@ export function centimes (s) {
   if (!c) c = '0'
   if (!regChiffres.test(u)) return false
   if (!regChiffres.test(c)) return false
-  u = parseInt(u)
-  c = parseInt(c)
-  if (i !== -1 && c > 100) return false
-  return (u * 100) + c
+  return Math.round(parseFloat(u + '.' + c) * 100)
 }
 
 /* EAN13
