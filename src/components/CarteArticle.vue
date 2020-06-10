@@ -4,7 +4,7 @@
     <div class="col-8 droite column">
       <div class="col row justify-around items-start haut">
         <div class="col codecourt"><span class="codecourt2">{{ article.codeCourt }}</span></div>
-        <div class="col prix" v-if="article.poidsPiece === -1">{{ article.prix }}€ le Kg</div>
+        <div class="col prix" v-if="article.unite === 'kg'">{{ article.prix }}€ le Kg</div>
         <div class="col prix" v-else>{{ article.prix }}€ piéce</div>
         <div v-if="article.bio" class="col"><img class="iconeAB" src="../assets/logoAB.jpg"></div>
       </div>
