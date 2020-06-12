@@ -127,7 +127,7 @@ export function centimes (s) {
   let u = ''
   let c = ''
   if (i === -1) {
-      c = s
+      u = s
   } else {
     u = s.substring(0, i)
     c = s.substring(i + 1)
