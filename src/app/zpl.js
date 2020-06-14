@@ -48,14 +48,14 @@ async function print(p, impr) {
             cmd = `COPY "${p}" "\\\\localhost\\${impr}"`
         } else {
             // pour tester en l'absence d'imprimante
-            cmd = `COPY "${p}" "C:\\tmp\\etiquette.txt"`
+            cmd = `COPY "${p}" "C:\\tmp\\etiquette.zpl"`
         }
     } else if (process.platform === 'linux') {
         if (impr) {
             cmd = `lpr -l -P "${impr}" "${p}"`
         } else {
             // pour tester en l'absence d'imprimante
-            cmd = `cp "${p}" "/tmp/etiquette.txt"`
+            cmd = `cp "${p}" "/tmp/etiquette.zpl"`
         }
     } else {
         throw Error('platform non supportée')
@@ -82,7 +82,7 @@ voire des imprimantes. 220 paraît une bonne approximation pour être centré
 */
 export async function etiquette(pese, article, poidsB, poidsC) {
     // eslint-disable-next-line no-unused-vars
-    let type, prix, poidsTare, date, ean, m
+    let type, prix, prixk, poidsTare, date, ean, m
     m = config.marge || 220
 
     let net = poidsC ? poidsB - poidsC : poidsB
@@ -99,9 +99,11 @@ export async function etiquette(pese, article, poidsB, poidsC) {
         prix = '?'
     } else {
         if (article.unite === 'kg') {
-            prix = ('' + Math.round(article.prixN * net / 10) / 100).replace('.', ',')
+            prixk = ('' + article.prixN).replace('.', ',') + '€/Kg'
+            prix = ('' + Math.round(article.prixN * net / 10) / 100).replace('.', ',') + '€'
         } else {
-            prix = ('' + (article.prixN * net)).replace('.', ',')
+            prix = ('' + (article.prixN * net)).replace('.', ',') + '€'
+            prixk = ''
         }
     }
     date = new Date().toLocaleDateString('fr-FR', options).replace(/\./g, '/')

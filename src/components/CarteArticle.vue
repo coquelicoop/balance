@@ -1,12 +1,12 @@
 <template>
   <div class="carteArticle shadow-5 row items-center" @click="$emit('clic-article')">
+    <div v-if="article.bio" style="position:absolute;top:0;"><img class="iconeAB" src="../assets/logoAB.jpg"></div>
     <div class="col-4"><img v-if="article.image" class="image" :src="'data:image/jpeg;base64,' + article.image"></div>
     <div class="col-8 droite column">
       <div class="col row justify-around items-start haut">
         <div class="col codecourt"><span class="codecourt2">{{ article.codeCourt }}</span></div>
-        <div class="col prix" v-if="article.unite === 'kg'">{{ article.prix }}€ le Kg</div>
-        <div class="col prix" v-else>{{ article.prix }}€ piéce</div>
-        <div v-if="article.bio" class="col"><img class="iconeAB" src="../assets/logoAB.jpg"></div>
+        <div class="col prix" v-if="article.unite === 'kg'"><div>{{ prix }}€</div><div>{{ article.prix }}€/Kg</div></div>
+        <div class="col prix" v-else>{{ article.prix }}€</div>
       </div>
       <div class="col nomproduit">{{ article.nom }}</div>
     </div>
@@ -19,11 +19,18 @@ La carte article est celle qui s'affiche pour un produit dans la zone principale
 Elle n'a qu'une seule interaction: le clic qui désigne que l'article est sélectionné et qui émit un événement "clic-article".
 Calcul rusé des hauteurs et largeurs de l'image sachant qu'elle occupe 4 / 12 de la largeur.
 */
+import { formatPrix } from '../app/global'
 export default {
   name: 'CarteArticle',
-  props: ['article'],
+  props: ['article', 'pb', 'pc'],
   data () {
     return {
+    }
+  },
+  computed: {
+    prix: function () {
+      if (!this.pb) return ''
+      return formatPrix((this.pb - this.pc) * this.article.prixN / 10) // pb pc en g, prixN en euros, formatPrix prend des centimes
     }
   }
 }
@@ -58,6 +65,7 @@ $fsnp: $hauteurp / 3
   background-color: white
   cursor: pointer
   overflow: hidden
+  position: relative
 
 .image
   border-radius: 0.5rem
@@ -78,7 +86,7 @@ $fsnp: $hauteurp / 3
   font-size: $hauteurdh - 0.2rem
   line-height: $hauteurdh - 0.2rem
   font-weight: bold
-  padding-right: 0.8rem
+  padding-right: 0
   max-height: $hauteurdh !important
   overflow: hidden
   color: red
@@ -88,15 +96,16 @@ $fsnp: $hauteurp / 3
   top: -0.3rem
 
 .prix
-  font-size: 0.7rem
-  line-height: 0.7rem
+  font-size: 1rem
+  line-height: 1rem
   text-align: center
   max-height: $hauteurdh !important
+  font-weight: bold
   overflow: hidden
 
 .iconeAB
-  width: 1.5rem
-  height: 1.5rem
+  width: 2rem
+  height: 2rem
 
 .nomproduit
   text-align: center

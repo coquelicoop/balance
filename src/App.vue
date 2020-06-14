@@ -114,7 +114,7 @@
       <div v-if="codeCourt.length !== 0 && this.selArticles.length == 0" class="av-msg shadow-5">{{ m4 }}</div>
       <!-- Fiches des articles correspondants au code court -->
       <div v-if="this.selArticles.length !== 0" class="row justify-around">
-        <carte-article v-for="article in selArticles" :key="article.idx" :article="article" @clic-article="clicArticle(article)"></carte-article>
+        <carte-article v-for="article in selArticles" :key="article.idx" :article="article" :pc="poidsContenant" :pb="poidsBalance" @clic-article="clicArticle(article)"></carte-article>
       </div>
     </q-page-container>
 
