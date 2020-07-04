@@ -334,6 +334,9 @@ export default {
   - il faut la connecter, c'est à dire la mettre à l'écoute permannente d'un poids
   */
   mounted() {
+    let stats
+    try { stats = mtimeArticles() } catch (e) {}
+    if (!stats) config.msgbox('Le serveur local doit être démarré avant le poste balance.', 'Relancer les deux PC dans l\'ordre : serveur PUIS une fois prêt, balance.', true)
     console.log('mounted: ' + config.balance)
     this.detectionArticles()
     // La balance est créée avec la méthode de callback à invoquer à chaque fois que le poids change (this.poidsReçu)

@@ -7,6 +7,7 @@ Le fichier config.json est dans le directory de travail :
 En cas d'erreur une boîte de dialogue module informe l'utilisateur et sort de l'application.
 La propriété config.version donne la version de l'application en production (en développement c'est celle de Quasar, on s'en fiche).
 La méthode quit() de config sort de l'application.
+La méthode msgbox affiche un message modal et sort ou non de l'application.
 */
 
 const path = require('path')
@@ -16,6 +17,20 @@ const remote = require('electron').remote
 class Config {
     quit () {
         remote.BrowserWindow.getFocusedWindow().close()
+    }
+    msgbox (message, detail, quit) {
+        remote.dialog.showMessageBoxSync({ type: 'error', buttons: ['Lu'], message: message, detail: detail })
+        if (quit) this.quit()
+    }
+    veriflock () {
+        this.timer = setTimeout(() => {
+            const x = fs.readFileSync(this.lockpath, { encoding: 'utf8', flag: 'r' })
+            if (x === this.lock) {
+                this.veriflock()
+            } else {
+                config.msgbox('L\'application a été relancée alors qu\'elle était déjà en exécution. Arrêt immédiat.', 'Double clic ? Arrêter et relancer le PC.', true)
+            }
+        }, 5000)
     }
 }
 export const config = new Config()
@@ -38,14 +53,14 @@ try {
     if (rawdata) {
         const obj = JSON.parse(rawdata)
         for (let f in obj) { config[f] = obj[f] }
+    } else {
+        config.msgbox('Configuration config.json incorrecte ou non trouvée dans ' + config.dir, 'Installation défectueuse ?', true)
     }
+
+    config.lockpath = path.join(config.dir, 'lock.txt')
+    config.lock = new Date().toUTCString()
+    fs.writeFileSync(config.lockpath, config.lock, (err) => { config.msgbox('Impossible d\'accéder au fichier de protection ' + config.dir + 'lock.txt', err.message, true) })
+    config.veriflock()
 } catch (e) {
-    const err = {
-        type: 'error',
-        buttons: ['Lu'],
-        message: 'Configuration config.json incorrecte ou non trouvée dans ' + config.dir,
-        detail: e.message
-    }
-    remote.dialog.showMessageBoxSync(err)
-    config.quit()
+    config.msgbox('Configuration config.json incorrecte ou non trouvée dans ' + config.dir, e.message, true)
 }
