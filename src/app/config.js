@@ -16,7 +16,8 @@ const remote = require('electron').remote
 
 class Config {
     quit () {
-        remote.BrowserWindow.getFocusedWindow().close()
+        remote.app.quit()
+       // remote.BrowserWindow.getFocusedWindow().close()
     }
     msgbox (message, detail, quit) {
         remote.dialog.showMessageBoxSync({ type: 'error', buttons: ['Lu'], message: message, detail: detail })
@@ -28,7 +29,8 @@ class Config {
             if (x === this.lock) {
                 this.veriflock()
             } else {
-                config.msgbox('L\'application a été relancée alors qu\'elle était déjà en exécution. Arrêt immédiat.', 'Double clic ? Arrêter et relancer le PC.', true)
+                this.quit()
+                // config.msgbox('L\'application a été relancée alors qu\'elle était déjà en exécution. Arrêt immédiat.', 'Double clic ? Arrêter et relancer le PC ?', true)
             }
         }, 5000)
     }
@@ -36,6 +38,8 @@ class Config {
 export const config = new Config()
 
 let dir
+
+
 
 try {
     config.version = remote.app.getVersion()
