@@ -715,13 +715,21 @@ export default {
         // let e =
         let err = await etiquette(this.ecouteBalance, article, poidsB, poidsC)
         if (err) {
-          this.texteAlerte = 'L\'impression de l\'étiquette a échoué (problème \'imprimante)\nAppeler le coordonnateur.\n' + err
+          if (err === '99999') {
+            this.texteAlerte = 'Le poids a été mal récupéré. Repeser le produit, l\'enlever du plateau et recommencer.'
+          } else {
+            this.texteAlerte = 'L\'impression de l\'étiquette a échoué (problème \'imprimante)\nAppeler le coordonnateur.\n' + err
+          }
           this.alerte = true
           console.log('ERR : ' + err)
         }
         // console.log(e)
       } catch (err) {
-        this.texteAlerte = 'L\'impression de l\'étiquette a échoué (problème \'imprimante)\nAppeler le coordonnateur.\n' + err
+        if (err === '99999') {
+          this.texteAlerte = 'Le poids a été mal récupéré. Repeser le produit, l\'enlever du plateau et recommencer'
+        } else {
+          this.texteAlerte = 'L\'impression de l\'étiquette a échoué (problème \'imprimante)\nAppeler le coordonnateur.\n' + err
+        }
         this.alerte = true
         console.log(err.message)
       }

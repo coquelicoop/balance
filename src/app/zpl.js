@@ -108,6 +108,7 @@ export async function etiquette(pese, article, poidsB, poidsC) {
     }
     date = new Date().toLocaleDateString('fr-FR', options).replace(/\./g, '/')
     ean = editEAN(article['code-barre'], net)
+    if (ean.substring(7, 12) === '99999') return '99999'
     // texte de l'étiquette en ZPL : format 50mm x 40mmm
     // eslint-disable-next-line no-eval
     let etiq = eval('`' + template + '`')
