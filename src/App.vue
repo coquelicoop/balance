@@ -4,7 +4,7 @@
       <div class="column">
         <div class="col-auto row q-py-md">
           <!-- Bouton d'ouverture du menu réservé au coordonnateur -->
-          <q-btn :size="standardBtnSize" flat round @click="coordo = true" icon="menu" aria-label="Menu coordo"/>
+          <q-btn :size="standardBtnSize" flat round :color="odooproxy && statusproxy ? 'red' : 'black'" @click="coordo = true" icon="menu" aria-label="Menu coordo"/>
           <!-- Zone "poids brut" : soit celui donné par la balance, soit celui saisi par le coordonateur -->
           <div :class="'col row items-center justify-start av-gbtn' + (ecouteBalance ? '2' : ' shadow-5')" v-ripple @click="saisieP()">
             <div :class="'col av-label' + (ecouteBalance ? '2' : '')">Poids brut</div>
@@ -66,8 +66,10 @@
         <q-item clickable v-ripple @click="panneauGauche = false" class="column">
           <div class="col-auto text-h6 bold">Version de l'application : {{ version }}</div>
           <!-- Nombre d'articles du fichier -->
-          <div v-if="this.articles.length == 0" class="col-auto">Pas d'article</div>
-          <div v-else class="col-auto">{{this.articles.length}} articles</div>
+          <div v-if="articles.length == 0" class="col-auto">Pas d'article</div>
+          <div v-else class="col-auto">{{articles.length}} articles</div>
+          <div v-if="odooproxy && nberreurs !== 0" class="col-auto">{{ nberreurs }} article() ignorés (en erreur)</div>
+          <div v-if="odooproxy && statusproxy" class="col-auto">Etat du proxy : {{ statusproxy }}</div>
           <!-- La balance est en erreur : texte du diagnostic -->
           <div v-if="!ecouteBalance" class="col-auto text-negative">Balance déconnectée, saisie manuelle du poids</div>
           <div v-if="ecouteBalance && erreurBalance" class="col-auto text-negative">{{erreurBalance}}<br>
@@ -75,6 +77,9 @@
           </div>
         </q-item>
         <q-separator />
+        <q-item>
+          <q-btn v-if="odooproxy" label="Recharger les articles depuis Odoo" color="primary" @click="recharger"/>
+        </q-item>
         <!-- Bouton d'activation du mode "Impression en série" -->
         <q-item v-if="!enserie" clickable v-ripple @click="enserie = true;panneauGauche = false">
           <q-item-section avatar><q-icon class="menuButton" :name="'reorder'"/></q-item-section>
@@ -209,59 +214,38 @@
 
 <script>
 const fs = require('fs')
+const path = require('path')
 const csv = require('csv-parser') // parser csv
 
 import { config } from './app/config'
-import { formatPoids, removeDiacritics, codeCourtDeId } from './app/global'
+import { decoreArticles, formatPoids } from './app/global'
 import { Balance } from './app/portbalance'
 import { etiquette } from './app/zpl'
+import { remove } from './app/accents.js'
+import axios from 'axios'
 
 const lgn = config.lgnomsuretiquette || 32 // Nombre de caractères max apparaissant sur une ligne d'étiquette
+const cachejson = path.join(config.dir, 'cache.json')
 
-/*
-Décore un article "data" : calcule des propriétés additionnelles
-*/
-function decore (data) {
-    const n = parseInt(data.id, 10)
-    // Obtient le code court, depuis l'id ou depuis le nom
-    data.codeCourt = codeCourtDeId(n, data.nom)
-    // Enlève pour l'affichage le code court quand il figure
-    const k = data.nom.indexOf('[' + data.codeCourt + ']')
-    if (k !== -1) data.nom = data.nom.substring(0, k) + data.nom.substring(k + 4)
+const cache = { dh: '', sha: '', liste: [] }
 
-    // Détermine si le produit est bio depuis son nom
-    data.bio = data.nom.toUpperCase().indexOf('BIO') !== -1
+if (config.odooproxy) {
+  let rawdata
+  try {
+    rawdata = fs.readFileSync(cachejson)
+  } catch (e) { }
+  if (rawdata) {
+    const c = JSON.parse(rawdata)
+    const x = decoreArticles(c.liste, true, lgn)
+    cache.nberreurs = x[0]
+    cache.liste = x[1]
+    cache.dh = c.dh
+    cache.sha = c.sha
+  }
+}
 
-    // prix du produit sous forme numérique
-    data.prixN = parseFloat(data.prix)
-    if (Number.isNaN(data.prixN)) { data.prixN = 0 }
-
-    /*
-    Calcule les une ou deux lignes de dénomination du produit apparaissant sur l'étiquette
-    Une ligne a un nombre maximal de caractères
-    Les mots ne sont pas coupés
-    */
-    let nom = ['', '']
-    let j = 0
-    let nx = data.nom.trim().split(' ')
-    nx.splice(0, 0, '[' + data.codeCourt + ']')
-    for (let i = 0; i < nx.length && j < 2; i++) {
-        let m = nx[i]
-        if (nom[j].length + m.length + 1 < lgn) {
-            if (nom[j].length) {
-                nom[j] = nom[j] + ' ' + m
-            } else {
-                nom[j] = m
-            }
-        } else {
-            j++
-            if (j < 2) {
-                nom[j] = m
-            }
-        }
-    }
-    data.nom1 = nom[0] // Première ligne du nom
-    data.nom2 = nom[1] // Seconde ligne du nom
+function setCache() {
+  fs.writeFileSync(cachejson, JSON.stringify(cache))
 }
 
 // Retourne la date-heure de dernière modification du fichier articles.csv pour détecter son changement
@@ -280,21 +264,19 @@ function lectureArticles(cb) {
         cb(Error('Fichier ' + config.articles + ' inaccessible'))
         return
     }
-    const articles = []
+    const temp = []
     const rs = fs.createReadStream(config.articles)
     rs.on('error', (e) => {
         cb(e.message)
     })
-    let idx = 1
     try {
         rs.pipe(csv({ separator: ';' }))
         .on('data', (data) => {
-            decore(data)
-            data.idx = idx++
-            articles.push(data)
+            temp.push(data)
         })
         .on('end', () => {
-            cb(null, articles, mtime)
+          const x = decoreArticles(temp, true, lgn)
+          cb(null, x[1], mtime)
         })
         rs.on('error', (e) => {
             cb(e.message)
@@ -334,9 +316,25 @@ export default {
   - il faut la connecter, c'est à dire la mettre à l'écoute permannente d'un poids
   */
   mounted() {
-    let stats
-    try { stats = mtimeArticles() } catch (e) {}
-    if (!stats) config.msgbox('Le serveur local doit être démarré avant le poste balance.', 'Relancer les deux PC dans l\'ordre : serveur PUIS une fois prêt, balance.', true)
+    if (!config.odooproxy) {
+      let stats
+      try { stats = mtimeArticles() } catch (e) {}
+      if (!stats) config.msgbox('Le serveur local doit être démarré avant le poste balance.', 'Relancer les deux PC dans l\'ordre : serveur PUIS une fois prêt, balance.', true)
+    } else {
+      let rawdata
+      try {
+        rawdata = fs.readFileSync(cachejson)
+      } catch (e) { }
+      if (rawdata) {
+        const c = JSON.parse(rawdata)
+        cache.liste = c.liste
+        cache.dh = c.dh
+        cache.sha = c.sha
+        const x = decoreArticles(c.liste, true, lgn)
+        this.nberreurs = x[0]
+        this.articles = x[1]
+      }
+}
     console.log('mounted: ' + config.balance)
     this.detectionArticles()
     // La balance est créée avec la méthode de callback à invoquer à chaque fois que le poids change (this.poidsReçu)
@@ -346,6 +344,7 @@ export default {
 
   data () {
     return {
+      odooproxy: config.odooproxy,
       version: config.version, // version de l'application (en production seulement)
       m1: config.message1 || 'Poser les articles sur la balance',
       m2: config.message2 || 'Si les articles sont dans votre "contenant" personnel, appuyer en haut à droite sur "Contenant".\nSi votre contenant n\'a pas été pesé, voir l\'accueil.',
@@ -377,7 +376,10 @@ export default {
       t1: null, // Objet Timeout pour la boîte de dialogue coordonnateur
       t2: null, // Objet générique de Timeout pour tous les dialogues auxquels le client peut oublier de répondre
       t3: null, // Objet de Timeout pour le menu du coordonnateur
-      enserie: false // Mode de saisie en série activé ou non
+      enserie: false, // Mode de saisie en série activé ou non
+      nberreurs: 0, // nombre d'erreurs détectées dans le cache Odoo
+      satusproxy: '', // message d'erreur du dernier accès au proxy odoo
+      mask: false
     }
   },
 
@@ -438,6 +440,9 @@ export default {
   },
 
   methods: {
+    setMask() {},
+    unsetMask() { },
+
     quit () {
       config.quit()
     },
@@ -480,26 +485,31 @@ export default {
     },
 
     /*
-    Détection périodique du changement éventuel du fichier articles.csv
+    Détection périodique du changement éventuel du fichier articles.csv ou odoo
     N'opère pas quand un code court a été saisi : on ne change pas le fichier en cours de pesée
     Relance la détection / chargement en pooling
     */
-    detectionArticles() {
+    async detectionArticles() {
       if (!this.codeCourt) {
-        let mtime = mtimeArticles()
-        if (mtime && mtime !== this.mtime) {
-          lectureArticles((err, articles, mtime) => {
-            // A la fin de la lecture des articles
-            if (!err) {
-              this.articles = articles
-              this.mtime = mtime
-              this.raz()
-            } else {
-              this.texteAlerte = 'Le fichier des articles est corrompu ou absent\n' + config.articles + '\n' + err
-              this.alerte = true
-              this.raz()
-            }
-          })
+        if (config.odooproxy) {
+          await this.articlesAPeser(false)
+          this.raz()
+        } else {
+          let mtime = mtimeArticles()
+          if (mtime && mtime !== this.mtime) {
+            lectureArticles((err, articles, mtime) => {
+              // A la fin de la lecture des articles
+              if (!err) {
+                this.articles = articles
+                this.mtime = mtime
+                this.raz()
+              } else {
+                this.texteAlerte = 'Le fichier des articles est corrompu ou absent\n' + config.articles + '\n' + err
+                this.alerte = true
+                this.raz()
+              }
+            })
+          }
         }
       }
       setTimeout(() => {
@@ -633,7 +643,7 @@ export default {
         for (let i = 0; i < this.articles.length; i++) {
           let art = this.articles[i]
           if (sel.indexOf(art.idx) === -1) {
-            let nx = removeDiacritics(art.nom.substring(0, 1).toUpperCase())
+            let nx = remove(art.nom.substring(0, 1).toUpperCase())
             if (this.codeCourt === nx) this.selArticles.push(art)
           }
         }
@@ -649,7 +659,7 @@ export default {
       for (let i = 0; i < this.articles.length; i++) {
         let art = this.articles[i]
         if (sel.indexOf(art.idx) === -1) {
-          let nx = removeDiacritics(art.nom.substring(0, 2).toUpperCase())
+          let nx = remove(art.nom.substring(0, 2).toUpperCase())
           if (this.codeCourt === nx) this.selArticles.push(art)
         }
       }
@@ -733,7 +743,38 @@ export default {
         this.alerte = true
         console.log(err.message)
       }
-    }
+    },
+
+    async recharger() {
+      await this.articlesAPeser (true)
+    },
+
+    async articlesAPeser (recharg) {
+      this.setMask()
+      try {
+        const args = { dh: this.articles.dh, sha: this.articles.sha, $username: config.username, $password: config.password }
+        if (recharg) args.recharg = true
+        const url = config.odooproxy + 'm1/articlesAPeser'
+        const r = await axios.post(url, args, { responseType: 'json' })
+        const x = r.data
+        if (x.sha === cache.sha) {
+          cache.dh = x.dh
+        } else {
+          cache.sha = x.sha
+          cache.dh = x.dh
+          cache.liste = x.liste
+          setCache()
+          const t = decoreArticles(x.liste, true, lgn)
+          this.nberreurs = t[0]
+          this.articles = t[1]
+        }
+        this.statusproxy = ''
+      } catch (e) {
+        this.statusproxy = e.message
+      }
+      this.unsetMask()
+   }
+
   }
 }
 </script>
@@ -742,7 +783,6 @@ export default {
 @import './css/app.sass'
 $largeWidth: 16rem
 $standardWidth: 10rem
-
 
 .souligne
   text-decoration: underline
