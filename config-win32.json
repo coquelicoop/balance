@@ -1,7 +1,8 @@
 {
-    "articles": "C:\\Users\\Domi\\balance\\articles.csv",
-    "odooproxy": "http://localhost:8091",
-    "env": "p",
+    "Xarticles": "C:\\Users\\Domi\\balance\\articles.csv",
+    "odooproxy": "http://localhost:8091/p/",
+    "username": "dev@coquelicoop.fr",
+    "password": "???",
 
     "balance": "COM5",
     "imprimante": "WS4",

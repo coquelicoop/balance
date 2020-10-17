@@ -1,8 +1,8 @@
 {
-    "articles": "/home/daniel/balance/articles.csv",
+    "Xarticles": "/home/daniel/balance/articles.csv",
     "odooproxy": "http://localhost:8091/p/",
     "username": "dev@coquelicoop.fr",
-    "password": "2020_stopogm",
+    "password": "???",
 
     "balance": "/dev/ttyUSB0",
     "imprimante": "WS408-SZPL",
