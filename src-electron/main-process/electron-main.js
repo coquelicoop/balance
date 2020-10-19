@@ -28,8 +28,8 @@ function createWindow () {
    */
   if (process.env.PROD) {
     mainWindow = new BrowserWindow({
-      frame: false,
-      fullscreen: true,
+      frame: true,
+      fullscreen: false,
       webPreferences: {
         // Change from /quasar.conf.js > electron > nodeIntegration;
         // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration

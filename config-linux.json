@@ -1,6 +1,6 @@
 {
     "Xarticles": "/home/daniel/balance/articles.csv",
-    "odooproxy": "http://localhost:8091/p/",
+    "odooproxy": "http://odooproxy.coquelicoop.fr/p/",
     "username": "dev@coquelicoop.fr",
     "password": "???",
 

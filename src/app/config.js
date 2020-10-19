@@ -39,8 +39,6 @@ export const config = new Config()
 
 let dir
 
-
-
 try {
     config.version = remote.app.getVersion()
     const argv = remote.process.argv

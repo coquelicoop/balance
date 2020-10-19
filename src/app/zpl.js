@@ -82,10 +82,11 @@ voire des imprimantes. 220 paraît une bonne approximation pour être centré
 */
 export async function etiquette(pese, article, poidsB, poidsC) {
     // eslint-disable-next-line no-unused-vars
-    let type, prix, prixk, poidsTare, date, ean, m
-    m = config.marge || 220
+    let type, prix, prixk, poidsTare
+    // eslint-disable-next-line no-unused-vars
+    const m = config.marge || 220
 
-    let net = poidsC ? poidsB - poidsC : poidsB
+    const net = poidsC ? poidsB - poidsC : poidsB
 
     if (article.unite === 'kg') {
         type = pese ? 'Poids Net' : 'Poids SAISI'
@@ -106,14 +107,16 @@ export async function etiquette(pese, article, poidsB, poidsC) {
             prixk = ''
         }
     }
-    date = new Date().toLocaleDateString('fr-FR', options).replace(/\./g, '/')
-    ean = editEAN(article['code-barre'], net)
-    if (ean.substring(7, 12) === '99999') return '99999'
+    // eslint-disable-next-line no-unused-vars
+    const date = new Date().toLocaleDateString('fr-FR', options).replace(/\./g, '/')
+    const ean = editEAN(article['code-barre'], net)
+    const pp = ean.substring(7, 12)
+    if (pp === '99999' || pp === '00000') return '99999'
     // texte de l'étiquette en ZPL : format 50mm x 40mmm
     // eslint-disable-next-line no-eval
-    let etiq = eval('`' + template + '`')
+    const etiq = eval('`' + template + '`')
     // path du fichier à impimer
-    let p = path.join(config.dir, 'etiquette.zpl')
+    const p = path.join(config.dir, 'etiquette.zpl')
     // écriture du texte en ZPL sur ce fichier
     await ecrire(p, etiq)
     // envoi à l'imprimante selon l'OS

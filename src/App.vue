@@ -2,9 +2,9 @@
   <q-layout id="q-app" view="hHh lpR fFf" class="bg-grey-10">
     <q-header class="text-black bg-grey-2">
       <div class="column">
-        <div class="col-auto row q-py-md">
+        <div class="col-auto row">
           <!-- Bouton d'ouverture du menu réservé au coordonnateur -->
-          <q-btn :size="standardBtnSize" flat round :color="odooproxy && statusproxy ? 'red' : 'black'" @click="coordo = true" icon="menu" aria-label="Menu coordo"/>
+          <q-btn :size="standardBtnSize" flat round :color="odooproxy && statusproxy ? 'red' : 'black'" @click="openMenu" icon="menu" aria-label="Menu coordo"/>
           <!-- Zone "poids brut" : soit celui donné par la balance, soit celui saisi par le coordonateur -->
           <div :class="'col row items-center justify-start av-gbtn' + (ecouteBalance ? '2' : ' shadow-5')" v-ripple @click="saisieP()">
             <div :class="'col av-label' + (ecouteBalance ? '2' : '')">Poids brut</div>
@@ -28,6 +28,9 @@
             <div class="col av-label">Contenant</div>
           </div>
         </div>
+
+        <q-btn v-if="enserie" class="q-mb-xs" style="width:100%;color:white;background:red" @click="finSerie"
+          label="Attention : mode impression en série. Pour revenir au mode normal cliquer ici"/>
 
         <!-- Zone du clavier : deux rangées de lettres -->
         <div class="col-auto row justify-between items-start">
@@ -63,22 +66,8 @@
         <q-btn v-if="panneauGauche" :size="standardBtnSize" dense round unelevated color="accent" icon="chevron_left" @click="panneauGauche = false"/>
       </div>
       <q-list>
-        <q-item clickable v-ripple @click="panneauGauche = false" class="column">
-          <div class="col-auto text-h6 bold">Version de l'application : {{ version }}</div>
-          <!-- Nombre d'articles du fichier -->
-          <div v-if="articles.length == 0" class="col-auto">Pas d'article</div>
-          <div v-else class="col-auto">{{articles.length}} articles</div>
-          <div v-if="odooproxy && nberreurs !== 0" class="col-auto">{{ nberreurs }} article() ignorés (en erreur)</div>
-          <div v-if="odooproxy && statusproxy" class="col-auto">Etat du proxy : {{ statusproxy }}</div>
-          <!-- La balance est en erreur : texte du diagnostic -->
-          <div v-if="!ecouteBalance" class="col-auto text-negative">Balance déconnectée, saisie manuelle du poids</div>
-          <div v-if="ecouteBalance && erreurBalance" class="col-auto text-negative">{{erreurBalance}}<br>
-            <span class="text-deep-orange-8 text-bold">Tenter de reconnecter après avoir vérifier les branchements et que la balance est allumée</span>
-          </div>
-        </q-item>
-        <q-separator />
         <q-item>
-          <q-btn v-if="odooproxy" label="Recharger les articles depuis Odoo" color="primary" @click="recharger"/>
+          <q-btn v-if="odooproxy" label="Recharger les articles depuis Odoo" color="primary" @click="panneauGauche = false; recharger()"/>
         </q-item>
         <!-- Bouton d'activation du mode "Impression en série" -->
         <q-item v-if="!enserie" clickable v-ripple @click="enserie = true;panneauGauche = false">
@@ -105,6 +94,22 @@
         <q-item clickable class="negative" v-ripple @click="exitApp = true">
           <q-item-section avatar><q-icon class="menuButton" :name="'exit_to_app'"/></q-item-section>
           <q-item-section class="menuText">Quitter l'application</q-item-section>
+        </q-item>
+        <q-separator/>
+        <q-item class="column">
+          <div class="col-auto text-h6 bold">Version de l'application : {{ version }}</div>
+          <!-- Nombre d'articles du fichier -->
+          <div v-if="articles.length == 0" class="col-auto">Pas d'article</div>
+          <div v-else class="col-auto">{{articles.length}} articles</div>
+          <div class="col-auto">Date-heure des articles: {{ cache.dh }}</div>
+          <div class="col-auto">SHA des articles : {{ cache.sha }}</div>
+          <div v-if="odooproxy && nberreurs !== 0" class="col-auto">{{ nberreurs }} article() ignorés (en erreur)</div>
+          <div v-if="odooproxy && statusproxy" class="col-auto">Etat du proxy : {{ statusproxy }}</div>
+          <!-- La balance est en erreur : texte du diagnostic -->
+          <div v-if="!ecouteBalance" class="col-auto text-negative">Balance déconnectée, saisie manuelle du poids</div>
+          <div v-if="ecouteBalance && erreurBalance" class="col-auto text-negative">{{erreurBalance}}<br>
+            <span class="text-deep-orange-8 text-bold">Tenter de reconnecter après avoir vérifier les branchements et que la balance est allumée</span>
+          </div>
         </q-item>
       </q-list>
     </q-drawer>
@@ -304,6 +309,8 @@ const poolingArticles = config.poolingArticles || 10000
 // delai maximal de réaction du coordonateur sur son panneau
 const toCoordo = config.timeoutCoordo || 10000
 
+const toMenu = config.timeoutMenu || 60000
+
 export default {
   name: 'App',
 
@@ -334,7 +341,7 @@ export default {
         this.nberreurs = x[0]
         this.articles = x[1]
       }
-}
+    }
     console.log('mounted: ' + config.balance)
     this.detectionArticles()
     // La balance est créée avec la méthode de callback à invoquer à chaque fois que le poids change (this.poidsReçu)
@@ -344,6 +351,7 @@ export default {
 
   data () {
     return {
+      cache: cache,
       odooproxy: config.odooproxy,
       version: config.version, // version de l'application (en production seulement)
       m1: config.message1 || 'Poser les articles sur la balance',
@@ -373,12 +381,12 @@ export default {
       codeCourt: '', // Code court saisi par le client (ou les 2 première lettres du nom - 0 1 ou 2 caractères)
       alphabet1: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'],
       alphabet2: ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
-      t1: null, // Objet Timeout pour la boîte de dialogue coordonnateur
-      t2: null, // Objet générique de Timeout pour tous les dialogues auxquels le client peut oublier de répondre
-      t3: null, // Objet de Timeout pour le menu du coordonnateur
+      t1: null, // Objet de timeout pour le menu (on peu avoir le menu et une alerte ouverte, d'où t1 et t3)
+      t2: null, // Objet générique de Timeout pour les pavés numériques
+      t3: null, // Objet de Timeout pour tous les dialogues auxquels le client peut oublier de répondre
       enserie: false, // Mode de saisie en série activé ou non
       nberreurs: 0, // nombre d'erreurs détectées dans le cache Odoo
-      satusproxy: '', // message d'erreur du dernier accès au proxy odoo
+      statusproxy: '', // message d'erreur du dernier accès au proxy odoo
       mask: false
     }
   },
@@ -391,18 +399,18 @@ export default {
     // Détection de l'affirmation que le client est coordonnateur : enclenche le timeout pour répondre non
     coordo (apres, avant) {
       if (apres && !avant) {
-        this.t1 = setTimeout(() => {
+        this.t3 = setTimeout(() => {
           this.coordo = false
-          if (this.t1) { clearTimeout(this.t1); this.t1 = null }
+          if (this.t3) { clearTimeout(this.t3); this.t3 = null }
         }, toCoordo)
       }
     },
     // Détection de l'ouverture du panneau gauche : enclenche le timeout pour le refermer
     panneauGauche (apres) {
       if (apres) {
-        this.t3 = setTimeout(() => { this.panneauGauche = false; this.t3 = null }, toCoordo)
+        this.t1 = setTimeout(() => { this.panneauGauche = false; this.t1 = null }, toMenu)
       } else {
-        if (this.t3) { clearTimeout(this.t3); this.t3 = null }
+        if (this.t1) { clearTimeout(this.t1); this.t1 = null }
       }
     },
     // Détection de l'ouverture du pavé numérique pour saisir le poids du contenant : enclenche le timeout pour le refermer
@@ -440,6 +448,13 @@ export default {
   },
 
   methods: {
+    openMenu() {
+      if (config.confirmCoordo) {
+        this.coordo = true
+      } else {
+        this.panneauGauche = true
+      }
+    },
     setMask() {},
     unsetMask() { },
 
@@ -486,11 +501,14 @@ export default {
 
     /*
     Détection périodique du changement éventuel du fichier articles.csv ou odoo
-    N'opère pas quand un code court a été saisi : on ne change pas le fichier en cours de pesée
+    On ne change pas le fichier en cours de pesée
+    - quand un code court a été saisi, qu'il y a un poids ou un poids de contenant saisi
+    - au milieu d'une pesée en série,
+    Ni quand une boîte de dialogue est ouverte
     Relance la détection / chargement en pooling
     */
     async detectionArticles() {
-      if (!this.codeCourt) {
+      if (!this.t1 && !this.t2 && !this.t3 && !this.enserie && !this.codeCourt && !this.poidsBalance && !this.poidsContenant) {
         if (config.odooproxy) {
           await this.articlesAPeser(false)
           this.raz()
