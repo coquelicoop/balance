@@ -150,7 +150,7 @@ module.exports = function (ctx) {
 
     // Full list of options: https://quasar.dev/quasar-cli/developing-electron-apps/configuring-electron
     electron: {
-      bundler: 'packager', // 'packager' or 'builder'
+      bundler: 'builder', // 'packager' or 'builder'
 
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
@@ -163,7 +163,7 @@ module.exports = function (ctx) {
 
         // Windows only
         // win32metadata: { ... }
-        // platform: 'linux',
+        platform: 'linux',
         // platform: 'win32',
         icon: 'balance.ico'
       },
