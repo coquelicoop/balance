@@ -42,9 +42,6 @@ module.exports = function (ctx) {
       //            (not treeshaking Quasar; biggest bundle size; convenient)
       all: 'auto',
 
-      components: ['QDialog', 'QHeader', 'QFooter', 'QCard', 'QCardSection', 'QCardActions', 'QScrollArea'],
-      directives: ['ClosePopup'],
-
       // Quasar plugins
       plugins: []
     },
@@ -54,27 +51,32 @@ module.exports = function (ctx) {
 
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
-      scopeHoisting: true,
-      // vueRouterMode: 'hash', // available values: 'hash', 'history'
-      showProgress: true,
-      gzip: false,
-      analyze: false,
+      vueRouterMode: 'hash', // available values: 'hash', 'history'
+
+      // transpile: false,
+
+      // Add dependencies for transpiling with Babel (Array of string/regex)
+      // (from node_modules, which are by default not transpiled).
+      // Applies only if "transpile" is set to true.
+      // transpileDependencies: [],
+
+      // rtl: false, // https://quasar.dev/options/rtl-support
+      // preloadChunks: true,
+      // showProgress: false,
+      // gzip: true,
+      // analyze: true,
+
       // Options below are automatically set depending on the env, set them if you want to override
-      // preloadChunks: false,
       // extractCSS: false,
 
-      // https://quasar.dev/quasar-cli/cli-documentation/handling-webpack
+      // https://quasar.dev/quasar-cli/handling-webpack
       extendWebpack (cfg) {
         cfg.module.rules.push({
           enforce: 'pre',
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
-          exclude: /node_modules/,
-          options: {
-            formatter: require('eslint').CLIEngine.getFormatter('stylish')
-          }
+          exclude: /node_modules/
         })
-        cfg.devtool = 'source-map'
       }
     },
 
