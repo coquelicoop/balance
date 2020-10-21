@@ -10,19 +10,21 @@ La méthode quit() de config sort de l'application.
 La méthode msgbox affiche un message modal et sort ou non de l'application.
 */
 
-const path = require('path')
-const fs = require('fs')
-const remote = require('electron').remote
+import path from 'path'
+import fs from 'fs'
+import { remote } from 'electron'
 
 class Config {
     quit () {
         remote.app.quit()
        // remote.BrowserWindow.getFocusedWindow().close()
     }
+
     msgbox (message, detail, quit) {
         remote.dialog.showMessageBoxSync({ type: 'error', buttons: ['Lu'], message: message, detail: detail })
         if (quit) this.quit()
     }
+
     veriflock () {
         this.timer = setTimeout(() => {
             const x = fs.readFileSync(this.lockpath, { encoding: 'utf8', flag: 'r' })
@@ -54,7 +56,7 @@ try {
     const rawdata = fs.readFileSync(path.join(config.dir, 'config.json'))
     if (rawdata) {
         const obj = JSON.parse(rawdata)
-        for (let f in obj) { config[f] = obj[f] }
+        for (const f in obj) { config[f] = obj[f] }
     } else {
         config.msgbox('Configuration config.json incorrecte ou non trouvée dans ' + config.dir, 'Installation défectueuse ?', true)
     }

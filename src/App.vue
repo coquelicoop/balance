@@ -255,7 +255,7 @@ function setCache() {
 
 // Retourne la date-heure de dernière modification du fichier articles.csv pour détecter son changement
 function mtimeArticles () {
-    let stats = fs.statSync(config.articles)
+    const stats = fs.statSync(config.articles)
     return stats ? stats.mtime.toString() : ''
 }
 
@@ -264,7 +264,7 @@ Lecture du fichier articles.csv et mise sous forme d'objet - CSV : id nom code-b
 Fonction différée : le retour effectif est sur le callback cb (en erreur ou normal)
 */
 function lectureArticles(cb) {
-    let mtime = mtimeArticles()
+    const mtime = mtimeArticles()
     if (!mtime) {
         cb(Error('Fichier ' + config.articles + ' inaccessible'))
         return
@@ -513,7 +513,7 @@ export default {
           await this.articlesAPeser(false)
           this.raz()
         } else {
-          let mtime = mtimeArticles()
+          const mtime = mtimeArticles()
           if (mtime && mtime !== this.mtime) {
             lectureArticles((err, articles, mtime) => {
               // A la fin de la lecture des articles
@@ -652,32 +652,32 @@ export default {
       const sel = [] // pour éviter de voir le même article affiché 2 fois (par son code court et le début de son nom)
       if (this.codeCourt.length === 1) {
         for (let i = 0; i < this.articles.length; i++) {
-          let art = this.articles[i]
+          const art = this.articles[i]
           if (art.codeCourt.charAt(0) === this.codeCourt) {
             sel.push(art.idx)
             this.selArticles.push(art)
           }
         }
         for (let i = 0; i < this.articles.length; i++) {
-          let art = this.articles[i]
+          const art = this.articles[i]
           if (sel.indexOf(art.idx) === -1) {
-            let nx = remove(art.nom.substring(0, 1).toUpperCase())
+            const nx = remove(art.nom.substring(0, 1).toUpperCase())
             if (this.codeCourt === nx) this.selArticles.push(art)
           }
         }
         return
       }
       for (let i = 0; i < this.articles.length; i++) {
-        let art = this.articles[i]
+        const art = this.articles[i]
         if (art.codeCourt === this.codeCourt) {
           sel.push(art.idx)
           this.selArticles.push(art)
         }
       }
       for (let i = 0; i < this.articles.length; i++) {
-        let art = this.articles[i]
+        const art = this.articles[i]
         if (sel.indexOf(art.idx) === -1) {
-          let nx = remove(art.nom.substring(0, 2).toUpperCase())
+          const nx = remove(art.nom.substring(0, 2).toUpperCase())
           if (this.codeCourt === nx) this.selArticles.push(art)
         }
       }
@@ -687,7 +687,7 @@ export default {
     Clic sur la fiche d'un article
     */
     clicArticle(article) {
-      let c1 = article.codeCourt.charAt(0)
+      const c1 = article.codeCourt.charAt(0)
       if (this.enserie && c1 < 'W') {
         /*
         Pour étiquettage en série on ne garde en sélection qu'un seul article
@@ -741,7 +741,7 @@ export default {
       this.raz()
       try {
         // let e =
-        let err = await etiquette(this.ecouteBalance, article, poidsB, poidsC)
+        const err = await etiquette(this.ecouteBalance, article, poidsB, poidsC)
         if (err) {
           if (err === '99999') {
             this.texteAlerte = 'Le poids a été mal récupéré. Repeser le produit, l\'enlever du plateau et recommencer.'

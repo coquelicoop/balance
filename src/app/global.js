@@ -31,12 +31,12 @@ const c2 = 'BCDFGHJKLMNPQRSTVWXZ'
 const non = ['AI', 'AU', 'EU', 'OI', 'OU', 'BL', 'CH', 'FL', 'GL', 'PL', 'SL']
 
 // lisre des codes courts générés
-let codes = []
+const codes = []
 
 // génération pour ceux commençant par une voyelle et suivi d'une voyelle
 for (let i = 0, x1 = ''; (x1 = v1.charAt(i)); i++) {
   for (let j = 0, x2 = ''; (x2 = v2.charAt(j)); j++) {
-    let cc = x1 + x2
+    const cc = x1 + x2
     if (non.indexOf(cc) === -1) codes.push(cc)
   }
 }
@@ -44,7 +44,7 @@ for (let i = 0, x1 = ''; (x1 = v1.charAt(i)); i++) {
 // génération pour ceux commençant par une consonne et suivi d'une consonne
 for (let i = 0, x1 = ''; (x1 = c1.charAt(i)); i++) {
   for (let j = 0, x2 = ''; (x2 = c2.charAt(j)); j++) {
-    let cc = x1 + x2
+    const cc = x1 + x2
     if (non.indexOf(cc) === -1) codes.push(cc)
   }
 }
@@ -124,7 +124,7 @@ Retourne le montant entier en centimes OU false si la syntaxe d'entrée n'est pa
 */
 export function centimes (s) {
   if (typeof s !== 'string' || s.length === 0) return false
-  let i = s.indexOf('.')
+  const i = s.indexOf('.')
   let u = ''
   let c = ''
   if (i === -1) {
@@ -155,11 +155,11 @@ export function editEAN(ean, p) {
   const ap = typeof p !== 'undefined'
   if (ap) {
     if (typeof p !== 'number' || p < 0 || p > 99999) return ['code-barre : le poids n\'est pas numérique et compris entre 1 et 99999', null]
-    let x = '0000' + p
+    const x = '0000' + p
     s = ean.substring(0, 7) + x.substring(x.length - 5) + '0'
   }
-  let c = cleEAN(s)
-  let cx = s.substring(12)
+  const c = cleEAN(s)
+  const cx = s.substring(12)
   if (!ap) {
     return c === cx ? [null, s] : ['code-barre : erreur de clé. Celle calculée est ' + c + ', celle saisie est ' + cx, null]
   } else {
@@ -184,17 +184,17 @@ Somme de contrôle = 90 - 84 = 6
 EAN13 ---> 9 780201 134476
 */
 export function cleEAN (s) {
-  let v = new Array(13)
+  const v = new Array(13)
   for (let i = 0; i < 13; i++) v[i] = s.charCodeAt(i) - 48
   let x = 0
   for (let i = 10; i >= 0; i = i - 2) { x += v[i] }
   let y = 0
   for (let i = 11; i >= 0; i = i - 2) { y += v[i] }
-  let z = (3 * y) + x
-  let r = z % 10
+  const z = (3 * y) + x
+  const r = z % 10
   let c = 0
   if (r !== 0) {
-      let q = Math.floor(z / 10) + 1
+      const q = Math.floor(z / 10) + 1
       c = (q * 10) - z
   }
   return String.fromCharCode(48 + c)

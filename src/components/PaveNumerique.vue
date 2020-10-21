@@ -59,7 +59,7 @@ export default {
         - pour les unités c'est 2 chiffres (au plus 99 unités). Il faut donc que le nombre actuel soit inférieur à 10.
         - pour les poids c'est 5 chiffres (99,999kg).
         */
-        let max = this.unites ? 10 : 10000
+        const max = this.unites ? 10 : 10000
         if (this.poids < max) {
             this.poids = (this.poids * 10) + n
         }
