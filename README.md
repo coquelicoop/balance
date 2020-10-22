@@ -1,6 +1,6 @@
 L'application balance est passé en quasar 2.
 
-Ceci a entriné des modifications de configuration, comme décrit dans la page de migration
+Ceci a entrainé des modifications de configuration, comme décrit dans la page de migration
 de quasar pour passer de 1 à 2.
 
 electron est resté en 9 : au delà de cette version "remote" est deprecated ce qui impose de revoir :
