@@ -173,8 +173,8 @@ module.exports = function (ctx) {
 
       builder: {
         // https://www.electron.build/configuration/configuration
-        linux: { target: 'AppImage'},
-        // win: { target: 'portable' },
+        linux: { target: 'AppImage' },
+        win: { target: 'portable' },
         appId: 'balance'
       },
 
