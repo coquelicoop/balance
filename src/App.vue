@@ -234,21 +234,6 @@ const cachejson = path.join(config.dir, 'cache.json')
 
 const cache = { dh: '', sha: '', liste: [] }
 
-if (config.odooproxy) {
-  let rawdata
-  try {
-    rawdata = fs.readFileSync(cachejson)
-  } catch (e) { }
-  if (rawdata) {
-    const c = JSON.parse(rawdata)
-    const x = decoreArticles(c.liste, true, lgn)
-    cache.nberreurs = x[0]
-    cache.liste = x[1]
-    cache.dh = c.dh
-    cache.sha = c.sha
-  }
-}
-
 function setCache() {
   fs.writeFileSync(cachejson, JSON.stringify(cache))
 }
