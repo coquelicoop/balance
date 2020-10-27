@@ -256,7 +256,7 @@ function parse() {
     const x = decoreArticles(results.data, true, lgn)
     return { articles: x[1], mtime: mtime }
   } catch (e) {
-    return { err: Error('Fichier ' + config.articles + ' inaccessible') }
+    return { err: Error('Fichier ' + config.articles + ' inaccessible - ' + e.message) }
   }
 }
 

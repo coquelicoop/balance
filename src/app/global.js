@@ -285,8 +285,9 @@ export function decoreArticles (liste, saufErreur, lgn) {
     // unite
     if (!data.unite || (!data.unite.startsWith('Unit') && data.unite !== 'kg')) {
       data.erreurs.push('unite n\'est ni "Unite(s)" ni "Unité(s)" ni "kg"')
+    } else {
+      data.unite = data.unite.startsWith('Unit') ? 'Unite(s)' : 'kg'
     }
-    data.unite = data.unite.startsWith('Unit') ? 'Unite(s)' : 'kg'
 
     // code-barre
     const s = data['code-barre']
