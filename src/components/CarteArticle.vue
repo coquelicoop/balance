@@ -30,7 +30,7 @@ export default {
   computed: {
     prix: function () {
       if (!this.pb) return ''
-      return formatPrix((this.pb - this.pc) * this.article.prixN / 10) // pb pc en g, prixN en euros, formatPrix prend des centimes
+      return formatPrix((this.pb - this.pc) * this.article.prixN / 1000) // pb pc en g, prixN en euros, formatPrix prend des centimes
     }
   }
 }

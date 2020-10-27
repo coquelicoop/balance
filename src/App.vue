@@ -220,13 +220,13 @@
 <script>
 const fs = require('fs')
 const path = require('path')
-const csv = require('csv-parser') // parser csv
 
 import { config } from './app/config'
 import { decoreArticles, formatPoids } from './app/global'
 import { Balance } from './app/portbalance'
 import { etiquette } from './app/zpl'
 import { remove } from './app/accents.js'
+import Papa from 'papaparse'
 import axios from 'axios'
 
 const lgn = config.lgnomsuretiquette || 32 // Nombre de caractères max apparaissant sur une ligne d'étiquette
@@ -244,36 +244,20 @@ function mtimeArticles () {
     return stats ? stats.mtime.toString() : ''
 }
 
-/*
-Lecture du fichier articles.csv et mise sous forme d'objet - CSV : id nom code-barre prix unite image
-Fonction différée : le retour effectif est sur le callback cb (en erreur ou normal)
-*/
-function lectureArticles(cb) {
-    const mtime = mtimeArticles()
-    if (!mtime) {
-        cb(Error('Fichier ' + config.articles + ' inaccessible'))
-        return
-    }
-    const temp = []
-    const rs = fs.createReadStream(config.articles)
-    rs.on('error', (e) => {
-        cb(e.message)
-    })
-    try {
-        rs.pipe(csv({ separator: ';' }))
-        .on('data', (data) => {
-            temp.push(data)
-        })
-        .on('end', () => {
-          const x = decoreArticles(temp, true, lgn)
-          cb(null, x[1], mtime)
-        })
-        rs.on('error', (e) => {
-            cb(e.message)
-        })
-    } catch (e) {
-        cb(e.message)
-    }
+function parse() {
+  const mtime = mtimeArticles()
+  if (!mtime) {
+    return { err: Error('Fichier ' + config.articles + ' inaccessible') }
+  }
+  const s = fs.readFileSync(config.articles).toString('utf8')
+  try {
+    const results = Papa.parse(s, { delimiter: ';', header: true })
+    console.log('Parsing complete:', results)
+    const x = decoreArticles(results.data, true, lgn)
+    return { articles: x[1], mtime: mtime }
+  } catch (e) {
+    return { err: Error('Fichier ' + config.articles + ' inaccessible') }
+  }
 }
 
 /* eslint-disable no-unused-vars */
@@ -500,18 +484,17 @@ export default {
         } else {
           const mtime = mtimeArticles()
           if (mtime && mtime !== this.mtime) {
-            lectureArticles((err, articles, mtime) => {
-              // A la fin de la lecture des articles
-              if (!err) {
-                this.articles = articles
-                this.mtime = mtime
-                this.raz()
-              } else {
-                this.texteAlerte = 'Le fichier des articles est corrompu ou absent\n' + config.articles + '\n' + err
-                this.alerte = true
-                this.raz()
-              }
-            })
+            const x = parse()
+            // A la fin de la lecture des articles
+            if (!x.err) {
+              this.articles = x.articles
+              this.mtime = x.mtime
+              this.raz()
+            } else {
+              this.texteAlerte = 'Le fichier des articles est corrompu ou absent\n' + config.articles + '\n' + x.err
+              this.alerte = true
+              this.raz()
+            }
           }
         }
       }
