@@ -3,7 +3,7 @@ Génération du texte de l'étiquette en langage ZPL
 */
 
 import { config } from './config'
-import { formatPoids, editEAN } from './global'
+import { formatPoids, editEAN, formatPrix } from './global'
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 const fs = require('fs')
@@ -100,10 +100,10 @@ export async function etiquette(pese, article, poidsB, poidsC) {
         prix = '?'
     } else {
         if (article.unite === 'kg') {
-            prixk = ('' + article.prixN).replace('.', ',') + '€/Kg'
-            prix = ('' + Math.round(article.prixN * net / 10) / 100).replace('.', ',') + '€'
+            prixk = formatPrix(article.prixN) + '€/Kg'
+            prix = formatPrix(article.prixN * net / 1000) + '€'
         } else {
-            prix = ('' + (article.prixN * net)).replace('.', ',') + '€'
+            prix = formatPrix(article.prixN * net) + '€'
             prixk = ''
         }
     }
