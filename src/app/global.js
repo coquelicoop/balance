@@ -155,7 +155,7 @@ export function editEAN(ean, p) {
   const ap = typeof p !== 'undefined'
   if (ap) {
     if (typeof p !== 'number' || p < 0 || p > 99999) return ['code-barre : le poids n\'est pas numérique et compris entre 1 et 99999', null]
-    const x = '0000' + p
+    const x = '0000' + Math.round(p)
     s = ean.substring(0, 7) + x.substring(x.length - 5) + '0'
   }
   const c = cleEAN(s)

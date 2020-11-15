@@ -198,7 +198,7 @@ export class Balance {
         this.clearTimer() // la balance a répondu, plus la peine de s'inquièter de sa non réponse
         const s = u8ToStr(data)
         // console.log('<' + toDec(s) + '>') // juste une trace pour debug un peu confortable
-        const p = Number.parseFloat(s.substring(2)) * 1000
+        const p = Math.round(Number.parseFloat(s.substring(2)) * 1000)
         if (!isNaN(p)) { // normalement on doit recevoir un nombre décimal : 10.750 0.432 ...
             if (p !== this.poids) { // si la balance a répondu le même poids, l'appelant n'en a cure, ce qui l'intéresse sont les changements de poids
                 this.poids = p

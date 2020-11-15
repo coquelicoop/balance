@@ -96,6 +96,7 @@ export async function etiquette(pese, article, poidsB, poidsC) {
         type = 'Nombre de pièces'
         poidsTare = '' + poidsB
     }
+    console.log(`Poids Net: ${net}  format: ${poidsTare}`)
     if (!article.prixN) {
         prix = '?'
     } else {
@@ -107,11 +108,12 @@ export async function etiquette(pese, article, poidsB, poidsC) {
             prixk = ''
         }
     }
+    if (net > 40000 || net < 10) return '99999'
     // eslint-disable-next-line no-unused-vars
     const date = new Date().toLocaleDateString('fr-FR', options).replace(/\./g, '/')
+    // eslint-disable-next-line no-unused-vars
     const ean = editEAN(article['code-barre'], net)
-    const pp = ean.substring(7, 12)
-    if (pp === '99999' || pp === '00000') return '99999'
+    // console.log(`ean: ${ean}`)
     // texte de l'étiquette en ZPL : format 50mm x 40mmm
     // eslint-disable-next-line no-eval
     const etiq = eval('`' + template + '`')
