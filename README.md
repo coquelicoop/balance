@@ -13,3 +13,7 @@ Le builder est désormais electron-builder et non plus packager.
 Ceci a changé dans quasar.conf.js la section corresponde pour gérer une production AppImage.
 
 Sous windows la cible est 'portable'.
+Sous linux la cible peut être AppImage ou deb
+
+Test : quasar dev -m electron
+Build : quasar build -m electron
